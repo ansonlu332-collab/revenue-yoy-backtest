@@ -1,0 +1,2807 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<title>邊境人生模擬器</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="邊境人生">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0e1310">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+</head><body>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e1310; --panel:#151c17; --panel2:#1b241e; --line:#2b372f; --fg:#e3e9de; --mute:#8a998d;
+  --accent:#d6a340; --accent-fg:#14100a; --ok:#6cc08b; --bad:#e0705f; --great:#efca62; --blue:#7fb3cf;
+  --fs:16px; --sans:"Noto Sans TC",system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+  --serif:"Noto Serif TC","Songti TC",serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#eceee3; --panel:#f6f7ef; --panel2:#e4e8d8; --line:#c8cfb8; --fg:#1d261f; --mute:#5d6b60;
+  --accent:#9a6a0e; --accent-fg:#fff8e8; --ok:#23764a; --bad:#b53a2a; --great:#8a6200; --blue:#2c6785; color-scheme:light;}}
+:root[data-theme="light"]{
+  --bg:#eceee3; --panel:#f6f7ef; --panel2:#e4e8d8; --line:#c8cfb8; --fg:#1d261f; --mute:#5d6b60;
+  --accent:#9a6a0e; --accent-fg:#fff8e8; --ok:#23764a; --bad:#b53a2a; --great:#8a6200; --blue:#2c6785; color-scheme:light;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:var(--fs);line-height:1.7;
+  padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:0}
+body[data-layout="mobile"] .wrap{max-width:430px}
+body[data-fs="l"]{--fs:19px}
+button{font:inherit;color:inherit;cursor:pointer}
+.wrap{max-width:780px;margin:0 auto;min-width:0}
+.mono{font-family:var(--mono)}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:.45em .9em;line-height:1.4}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:700}
+.btn.pri:disabled{opacity:.4;cursor:not-allowed}
+.btn.sm{font-size:.82em;padding:.3em .7em}
+.chip{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:.05em .7em;font-size:.82em;background:var(--panel)}
+.mute{color:var(--mute)}
+/* start */
+#start{padding-block:max(28px,env(safe-area-inset-top,0px)) 40px}
+.hero small{letter-spacing:.3em;color:var(--accent);font-family:var(--mono);font-size:.7em}
+.hero h1{font-family:var(--serif);font-size:2.3em;margin:.1em 0;line-height:1.2;text-wrap:balance}
+.hero p{color:var(--mute);margin:.2em 0 1em;max-width:34em}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-block:14px}
+.card h3{margin:0 0 .5em;font-size:.78em;letter-spacing:.2em;color:var(--mute);font-weight:500}
+.scr{display:block;text-align:left;width:100%;border:1px solid var(--line);background:var(--panel2);border-radius:12px;padding:12px 14px;margin-top:10px}
+.scr:hover{border-color:var(--accent)}
+.scr.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.scr .sh1{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.scr b{font-family:var(--serif);font-size:1.15em}
+.scr .sub{color:var(--mute);font-size:.82em}
+.scr .st{margin-left:auto;color:var(--accent);font-family:var(--mono);letter-spacing:.1em;font-size:.82em}
+.scr p{margin:.3em 0 .5em;color:var(--mute);font-size:.9em}
+.ed{display:grid;gap:8px}
+.ed>div{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--panel2)}
+.ed .lock{color:var(--mute)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input[type=text]{background:var(--bg);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:.45em .7em;font:inherit;font-family:var(--mono);min-width:0;flex:1;text-transform:uppercase}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:.35em .9em}
+.seg button.on{background:var(--accent);color:var(--accent-fg);font-weight:700}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:.2em 1em}
+.kv dt{color:var(--mute)}.kv dd{margin:0}
+.biglink{width:100%;padding:.8em;font-size:1.1em;margin-top:6px}
+/* top */
+#top{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);
+  padding-top:env(safe-area-inset-top,0px)}
+#top::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
+.tb{display:flex;align-items:center;gap:6px 14px;padding-block:8px;flex-wrap:wrap}
+.tb .it{display:flex;flex-direction:column;line-height:1.2;min-width:0}
+.tb .it small{font-size:.62em;letter-spacing:.14em;color:var(--mute);font-family:var(--mono)}
+.tb .it b{font-family:var(--mono);font-weight:600}
+.tb .sp{flex:1}
+.pips{display:flex;gap:5px;padding-bottom:8px;align-items:center}
+.pip{height:5px;flex:1;max-width:44px;background:var(--line);border-radius:3px}
+.pip.on{background:var(--accent)} .pip.cur{background:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent)}
+.pips span{font-size:.68em;color:var(--mute);margin-left:6px}
+/* feed */
+#feed{padding-block:18px 60px}
+.ch{margin:2.2em 0 .8em;padding-top:.7em;border-top:1px solid var(--line)}
+.ch small{font-family:var(--mono);color:var(--accent);letter-spacing:.14em;font-size:.72em}
+.ch h2{font-family:var(--serif);font-size:1.35em;margin:.1em 0}
+.p{font-family:var(--serif);margin:.8em 0;text-wrap:pretty}
+.pickecho{margin:1em 0;padding:.4em .8em;border-left:3px solid var(--accent);background:var(--panel);border-radius:0 8px 8px 0}
+.pickecho b{color:var(--accent)}
+.judge{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:10px 12px;margin:1em 0}
+.judge .jh{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-weight:700}
+.judge .jf{font-family:var(--mono);font-size:.84em;color:var(--mute);margin-top:.3em;overflow-wrap:anywhere}
+.judge .jf b{color:var(--fg)}
+.judge details{margin-top:.4em;font-size:.84em;color:var(--mute)}
+.judge summary{cursor:pointer}
+.judge li{margin:.1em 0}
+.k-great{border-color:var(--great)} .k-great .jl{color:var(--great)}
+.k-success .jl{color:var(--ok)} .k-fail .jl{color:var(--bad)} .k-bigfail{border-color:var(--bad)} .k-bigfail .jl{color:var(--bad)}
+.deltas{display:flex;flex-wrap:wrap;gap:6px;margin:.6em 0}
+.dchip{font-size:.8em;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:.1em .6em}
+.dchip.up{color:var(--ok)} .dchip.dn{color:var(--bad)} .dchip.tx{color:var(--blue)}
+.dchip i{font-style:normal;color:var(--mute);margin-left:.4em}
+.box{border:1px dashed var(--line);border-radius:10px;padding:10px 14px;margin:1em 0;background:var(--panel);font-size:.9em}
+.box h4{margin:0 0 .3em;color:var(--accent);font-size:.95em}
+.box ul{margin:0;padding-left:1.1em}
+.board{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin:1em 0}
+.board>div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:.88em}
+.board h5{margin:0 0 .2em;font-size:.72em;letter-spacing:.16em;color:var(--mute);font-weight:500}
+.dead{text-decoration:line-through;color:var(--mute)}
+table.sc{width:100%;border-collapse:collapse;font-size:.9em}
+table.sc td{padding:.2em .3em;border-bottom:1px solid var(--line)} table.sc td:last-child{text-align:right;font-family:var(--mono)}
+.report{border:2px solid var(--accent);border-radius:14px;padding:18px;margin:2em 0;background:var(--panel)}
+.report .grade{font-family:var(--serif);font-size:3.4em;line-height:1;color:var(--accent)}
+.bars{display:grid;gap:6px}
+.bar{display:grid;grid-template-columns:5.2em 1fr 2em;gap:8px;align-items:center;font-size:.9em}
+.bar i{display:block;height:7px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar i u{display:block;height:100%;background:var(--accent)}
+.bar b{font-family:var(--mono);text-align:right}
+/* decision panel */
+#dock{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--panel);border-top:2px solid var(--accent);
+  padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));
+  padding-bottom:env(safe-area-inset-bottom,0px);max-height:62vh;display:flex;flex-direction:column}
+#dock.min{max-height:none}
+#dock .dh{display:flex;align-items:center;gap:10px;padding-block:8px}
+#dock .dh h3{margin:0;font-size:1em;flex:1;min-width:0}
+#dock .db{max-height:calc(62vh - 56px);overflow:auto;padding-bottom:12px;overscroll-behavior:contain}
+#dock.min .db{display:none}
+.stick{position:sticky;bottom:0;background:var(--panel);padding:10px 0 4px;margin-top:8px;border-top:1px solid var(--line);z-index:2}
+.hint{color:var(--mute);font-size:.86em;margin:0 0 8px}
+.opts{display:grid;gap:8px}
+.opt{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt:disabled{opacity:.5;cursor:not-allowed}
+.opt .on{font-weight:700}
+.opt .ol{color:var(--mute);font-size:.88em}
+.opt .pv{margin-top:.3em;font-family:var(--mono);font-size:.78em;display:flex;gap:10px;flex-wrap:wrap}
+.pv .r-great{color:var(--great)}.pv .r-success{color:var(--ok)}.pv .r-fail{color:var(--bad)}.pv .r-bigfail{color:var(--bad);font-weight:700}
+.tag{display:inline-block;font-size:.68em;border:1px solid var(--line);border-radius:4px;padding:0 .4em;margin-right:.5em;color:var(--mute);vertical-align:middle}
+.free{background:var(--panel2);border:1px dashed var(--accent);border-radius:10px;padding:10px 12px;margin-top:8px}
+.free h4{margin:.5em 0 .3em;font-size:.82em;color:var(--mute);font-weight:500;letter-spacing:.1em}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:.25em .7em;font-size:.88em;text-align:left}
+.chips button.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 18%,var(--bg));font-weight:700}
+.chips button:disabled{opacity:.4;cursor:not-allowed}
+.cand{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
+.cand input{margin-top:.5em;width:1.2em;height:1.2em}
+.cand.noinv{opacity:.85}
+/* drawer */
+#drawer{position:fixed;inset:0;z-index:40;display:none}
+#drawer.open{display:block}
+#drawer .bk{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+#drawer .sh{position:absolute;right:0;top:0;bottom:0;width:min(440px,100%);background:var(--panel);border-left:1px solid var(--line);
+  overflow:auto;padding:16px max(16px,env(safe-area-inset-right,0px)) 40px 16px;padding-top:max(16px,env(safe-area-inset-top,0px))}
+#drawer h2{margin:0 0 .5em;font-family:var(--serif);font-size:1.2em;display:flex;justify-content:space-between;align-items:center}
+.sec{margin:1em 0 .4em;font-size:.72em;letter-spacing:.18em;color:var(--mute)}
+.mods{display:flex;flex-wrap:wrap;gap:6px}
+.toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:var(--bad);color:#fff;padding:.5em 1em;border-radius:8px;z-index:60;font-size:.9em;max-width:90%}
+@media (max-width:520px){.hero h1{font-size:1.9em}.tb{gap:4px 12px}}
+</style>
+
+<div id="start" class="wrap">
+  <div class="hero">
+    <small>BORDERLIFE · 2060</small>
+    <h1>邊境人生模擬器</h1>
+    <p>近未來準軍事社會，十五歲的邊境貧民 Lu，從四個截然不同的夜晚走向各自的人生。每個劇本都有獨立的開場、支線與收束，十五種結局等你一一解鎖。</p>
+  </div>
+
+  <div class="card">
+    <h3>角色</h3>
+    <dl class="kv" style="margin:0">
+      <dt>姓名</dt><dd>Lu｜15歲｜邊境配給區出身｜突擊手</dd>
+      <dt>家人</dt><dd>父親、母親、六歲的妹妹</dd>
+      <dt>特質</dt><dd>寧願自己扛</dd>
+      <dt>起點</dt><dd>2060 年秋・邊境配給區（依劇本展開）</dd>
+    </dl>
+  </div>
+
+  <div class="card">
+    <h3>選擇劇本</h3>
+    <div id="scripts"></div>
+    <div class="row" style="margin-top:12px"><button class="btn sm" id="bEnd">結局圖鑑</button><span class="mute" id="endCount" style="font-size:.85em"></span></div>
+  </div>
+
+  <div class="card">
+    <h3>顯示</h3>
+    <div class="row" style="gap:18px">
+      <span>字級 <span class="seg" id="segFs"><button data-v="m">標準</button><button data-v="l">大字</button></span></span>
+      <span>版型 <span class="seg" id="segLay"><button data-v="pc">電腦版</button><button data-v="mobile">手機版</button></span></span>
+      <span>主題 <span class="seg" id="segTh"><button data-v="auto">跟隨</button><button data-v="dark">深</button><button data-v="light">淺</button></span></span>
+    </div>
+  </div>
+
+  <button class="btn pri biglink" id="go">以所選劇本開始人生</button>
+  <button class="btn biglink" id="cont" hidden></button>
+  <p class="hint" style="margin-top:18px">每個事件都有三組預設方案與「自由組合」；公開有效值、難度與預估結果，沒有骰子，結果完全由數值決定。主角受劇本保護，不會中途死亡。</p>
+</div>
+
+<div id="game" hidden>
+  <div id="top"><div class="wrap">
+    <div class="tb">
+      <div class="it"><small>劇本</small><b id="tScript" style="font-family:var(--sans)"></b></div>
+      <div class="it"><small>年齡</small><b id="tAge"></b></div>
+      <div class="it"><small>紀年</small><b id="tYear"></b></div>
+      <div class="it"><small>綜合</small><b id="tOv"></b></div>
+      <div class="it"><small>戰功</small><b id="tMerit"></b></div>
+      <span class="sp"></span>
+      <button class="btn sm" id="bDetail">詳情 ›</button>
+      <button class="btn sm" id="bTrait">特質 ›</button>
+      <button class="btn sm" id="bMenu">⋯</button>
+    </div>
+    <div class="pips" id="pips"></div>
+  </div></div>
+  <div class="wrap" id="feed"></div>
+  <div id="dock"><div class="wrap" style="width:100%">
+    <div class="dh"><h3 id="dTitle"></h3><button class="btn sm" id="dToggle">收合 ▾</button></div>
+    <div class="db" id="dBody"></div>
+  </div></div>
+</div>
+
+<div id="drawer"><div class="bk" id="dBk"></div><div class="sh" id="dSh"></div></div>
+
+<script>
+(function(root){'use strict';
+/* ===== 核心：常數、亂數、生成、判定 ===== */
+const EASE = 2; /* 全局難度補正 */
+const SEASON_N = ['秋', '冬', '春', '夏'];
+const ATTR_N = { pro: '專業', body: '體魄', pol: '權謀', fam: '家庭和睦', rep: '聲望' };
+const CAT_N = {
+  assault: '突擊', breach: '破點', recon: '偵察滲透', hold: '據守', mobility: '機動', survive: '生存',
+  social: '交涉', politics: '政治', family: '家庭', endure: '意志'
+};
+const COMBAT = new Set(['assault', 'breach', 'recon', 'hold', 'mobility', 'survive']);
+const TIER_N = { civil: '民用級模組', standard: '制式級模組', family: '家族訂製模組' };
+const TIER_B = { civil: -1, standard: 0, family: 1 };
+const SLOT_CAP = { civil: 8, standard: 9, family: 10 };
+const RANKS = ['邊境志願役考生', '防大附高學員', '防衛大學學員', '少尉', '中尉', '上尉', '少校', '中校', '上校', '退役上校'];
+const RANK_MERIT = { 4: 12, 5: 26, 6: 44, 7: 66, 8: 92 };
+
+const MODS = {
+  rifle: { n: '模組化突擊步槍', s: 2, req: true, b: {} },
+  optic: { n: '可調倍率瞄鏡', s: 1, b: { assault: 1 } },
+  ugl: { n: '下掛榴彈發射器', s: 2, b: { breach: 2, assault: 1 }, ammo: 'gren' },
+  pistol: { n: '腿側雙手槍', s: 1, b: { survive: 1 } },
+  frag: { n: '破片模擬彈', s: 1, b: { breach: 1 }, ammo: 'frag' },
+  smoke: { n: '煙幕彈', s: 1, b: { mobility: 1, survive: 1 }, ammo: 'smoke' },
+  breach: { n: '破門工具', s: 1, b: { breach: 2 } },
+  thruster: { n: '推進模組', s: 2, b: { mobility: 2 } },
+  sensor: { n: '感測模組', s: 1, b: { recon: 2 } },
+  armor: { n: '防護模組', s: 2, b: { survive: 2, hold: 1 } },
+  jammer: { n: '通訊干擾器', s: 1, b: { recon: 1 } }
+};
+const MOD_ORDER = ['rifle', 'optic', 'ugl', 'pistol', 'frag', 'smoke', 'breach', 'thruster', 'sensor', 'armor', 'jammer'];
+const PRESETS = {
+  A: { id: 'A', name: '全載突擊', mods: ['rifle', 'optic', 'ugl', 'pistol', 'frag', 'smoke'], pro: '火力與破點最強', con: '槽位幾乎全給武器，防護與推進最少' },
+  B: { id: 'B', name: '輕裝機動', mods: ['rifle', 'optic', 'pistol', 'thruster', 'sensor', 'smoke'], pro: '最靈活、偵察佳、不易暴露', con: '沒有榴彈，遇掩體固守目標吃虧' },
+  C: { id: 'C', name: '破點專精', mods: ['rifle', 'ugl', 'breach', 'smoke', 'armor'], pro: '攻堅最強、正面耐打', con: '無貼身備援，榴彈消耗快，遠距精準下降', extraGren: 2 }
+};
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const sgn = v => (v > 0 ? '+' + v : String(v));
+
+function hashSeed(s) {
+  let h = 1779033703 ^ s.length;
+  for (let i = 0; i < s.length; i++) { h = Math.imul(h ^ s.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909);
+  return (h ^= h >>> 16) >>> 0;
+}
+function mulberry(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function tInfo(t) { return { year: 2060 + Math.floor((t + 2) / 4), season: SEASON_N[t % 4], age: 15 + Math.floor(t / 4) }; }
+function ageToT(age, s) { return (age - 15) * 4 + (s || 0); }
+
+/* ---------- 名字與資料池 ---------- */
+const N_BORDER_M = ['杜蘭', '塔夫', '索倫', '哈根', '格雷', '巴頓', '奧圖', '雷諾', '卡爾', '鐵牙', '灰鼠', '賽拉斯', '洛克', '烏爾'];
+const N_BORDER_F = ['蕾娜', '艾琳', '蓋亞', '瑪蒂達', '莉絲', '奧莉', '娜塔', '賽菈', '米拉', '伊芙'];
+const N_COMMON_G = ['馬可', '漢娜', '提姆', '諾拉', '丹尼', '莎拉', '約書亞', '艾瑪', '雷歐', '黛安'];
+const N_COMMON_S = ['馬許', '科爾', '哈珀', '布萊克', '溫特', '史東', '費雪', '伍德'];
+const N_NOBLE_G = ['艾德里安', '塞巴斯蒂安', '奧古斯特', '塞西爾', '伊莎貝拉', '瑟琳娜', '奧菲莉亞', '雷蒙', '朱利安', '洛琳'];
+const N_NOBLE_S = ['維爾哈特', '格里芬', '艾森巴赫', '洛倫', '費爾南', '凱斯特納'];
+const KID_G = ['艾蓮娜', '凱特', '露西亞', '莉亞', '米婭', '瑟蕾', '亞瑟', '卡斯', '雷恩', '伊森', '諾亞', '奧斯卡'];
+const ROLES = [
+  { r: '突擊手', s: ['近距離突入果決', '耐壓能力強'], w: ['愛衝在最前面', '火力分配不均'] },
+  { r: '機槍手', s: ['火力壓制穩', '據點固守扎實'], w: ['機動慢', '彈藥消耗大'] },
+  { r: '狙擊手', s: ['遠距離點射精準', '耐得住長時間潛伏'], w: ['近身自保弱', '怕被包抄'] },
+  { r: '工兵', s: ['破門與爆破熟練', '工事搭建快'], w: ['體力偏弱', '遇到正面交火會慌'] },
+  { r: '醫護兵', s: ['戰地止血熟練', '隊伍續戰能力高'], w: ['攻擊意願低', '容易被當成首要目標'] },
+  { r: '通訊干擾手', s: ['能癱瘓局部通訊', '擅長情報判讀'], w: ['裝備怕磕碰', '單獨行動風險高'] },
+  { r: '偵察斥候', s: ['隱蔽滲透', '地形判讀快'], w: ['正面火力弱', '容易自作主張'] }
+];
+const TRAITS = [
+  { n: '沉穩', syn: 1, res: 0 }, { n: '衝動', syn: -1, res: -1 }, { n: '高傲', syn: -1, res: 2 }, { n: '膽小', syn: 0, res: -1 },
+  { n: '忠誠', syn: 1, res: 0 }, { n: '功利', syn: 0, res: 1 }, { n: '話少', syn: 0, res: 0 }, { n: '樂天', syn: 1, res: -1 }
+];
+const INJURIES = [
+  { name: '右肩舊傷', desc: '陰雨天會發作，端槍時肩胛卡一下', pen: 1, cats: ['assault', 'hold', 'breach'] },
+  { name: '左膝韌帶撕裂', desc: '落地與衝刺時膝蓋會抗議', pen: 1, cats: ['mobility', 'assault'] },
+  { name: '聽力受損', desc: '耳鳴不分晝夜，在爆炸環境下判斷變慢', pen: 1, cats: ['recon', 'hold'] },
+  { name: '肋骨裂傷後遺', desc: '深呼吸會痛，長時間負重吃力', pen: 1, cats: ['hold', 'survive', 'assault'] },
+  { name: '手臂神經顫抖', desc: '疲勞時握槍不穩', pen: 1, cats: ['assault', 'breach'] },
+  { name: '戰後夢魘', desc: '夜裡驚醒，白天心神恍惚', pen: 1, cats: ['all'] }
+];
+
+/* ---------- 遊戲建立 ---------- */
+function newGame(seedIn) {
+  const seed = String(seedIn == null ? '0' : seedIn).trim() || '0';
+  const G = {
+    seed, r: mulberry(hashSeed(seed)), choices: [], feed: [], node: null, pending: null, ended: false,
+    t: 0, chNo: 0, bi: -1, name: 'Lu',
+    stats: { pro: 6, body: 6, pol: 4, fam: 6, rep: 3 },
+    aff: 12, trust: 28, rel: 0, lastContact: 0, hidden: false,
+    mitch: { bond: 10, status: 'ok' },
+    married: false, ruzhui: null, surname: null, children: [], injuries: [], debt: 0, merit: 0, rank: 1, track: null,
+    tier: 'civil', loadout: PRESETS.B.mods.slice(), ammo: { gren: 0, frag: 0, smoke: 0 }, used: { gren: 0, frag: 0, smoke: 0 },
+    carry: [], prepBank: 0, syn: 0, intel: {}, exam: null, team: [], cands: [], rivals: [], allies: [],
+    deltas: [], tags: {}, life: [], dayCount: 0, lastDaily: [], pp: null, sumDone: {}, enemies: [], op: null, nextFn: null
+  };
+  G.int = (a, b) => a + Math.floor(G.r() * (b - a + 1));
+  G.pick = a => a[Math.floor(G.r() * a.length)];
+  G.shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(G.r() * (i + 1)); const x = a[i]; a[i] = a[j]; a[j] = x; } return a; };
+  // 五維：總和25
+  const keys = ['pro', 'body', 'pol', 'fam', 'rep'];
+  for (let i = 0; i < 4; i++) {
+    const from = G.pick(keys.filter(k => G.stats[k] > 2));
+    const to = G.pick(keys.filter(k => G.stats[k] < 8 && k !== from));
+    G.stats[from]--; G.stats[to]++;
+  }
+  genFamily(G);
+  genCands(G);
+  // 父母壽數、妹妹
+  G.fatherEnd = G.int(40, 60); G.motherEnd = G.int(46, 66);
+  G.lifeSpan = 0;
+  return G;
+}
+
+function genFamily(G) {
+  const nm = G.shuffle(N_BORDER_M), nf = G.shuffle(N_BORDER_F);
+  G.family = {
+    father: { name: nm[0], job: G.pick(['廢鐵回收工', '搬運班組長', '礦場爆破學徒轉任看守', '配給站倉管']), trait: G.pick(['沉默寡言', '固執但護短', '愛面子', '手很巧']), alive: true },
+    mother: { name: nf[0], job: G.pick(['替人縫補與洗衣', '地下診所助手', '配給站炊事', '修理民用骨骼的焊工']), trait: G.pick(['精打細算', '嘴硬心軟', '很會唱歌', '消息靈通']), alive: true },
+    sister: { name: nf[1], trait: G.pick(['黏人愛撒嬌', '倔強不服輸', '愛畫畫', '膽子大得離譜']), quirk: G.pick(['收集彈殼當玩具', '把配給糖留給哥哥', '用粉筆在牆上畫外骨骼', '半夜會夢遊找哥哥']) }
+  };
+}
+
+function genCands(G) {
+  const roles = G.shuffle(ROLES);
+  const ov = G.shuffle(['border', 'border', 'border', 'common', 'common', 'common', 'noble', 'noble']);
+  const used = new Set();
+  G.cands = ov.map((o, i) => {
+    let name;
+    if (o === 'border') { const pool = G.r() < 0.5 ? N_BORDER_M : N_BORDER_F; name = G.pick(pool.filter(x => !used.has(x))); }
+    else if (o === 'common') { name = G.pick(N_COMMON_G.filter(x => !used.has(x))) + '·' + G.pick(N_COMMON_S); }
+    else { name = G.pick(N_NOBLE_G.filter(x => !used.has(x))) + '·' + G.pick(N_NOBLE_S); }
+    used.add(name.split('·')[0]);
+    const role = roles[i % roles.length], trait = G.pick(TRAITS);
+    const tier = o === 'noble' ? (G.r() < 0.45 ? 'family' : 'standard') : o === 'common' ? (G.r() < 0.6 ? 'standard' : 'civil') : 'civil';
+    const rating = clamp(G.int(4, 7) + (o === 'noble' ? 1 : 0) + (tier === 'family' ? 1 : 0), 4, 9);
+    const diff = clamp(6 + trait.res + (o === 'noble' ? 3 : o === 'common' ? 1 : 0) + (rating >= 7 ? 1 : 0), 5, 13);
+    return {
+      id: i, name, origin: o, role: role.r, tier, trait: trait.n, syn: trait.syn, rating, diff,
+      str: G.pick(role.s), weak: G.pick(role.w)
+    };
+  });
+}
+
+/* ---------- 時間與狀態 ---------- */
+function when(G) { const i = tInfo(G.t); return `${i.year}·${i.season}·${i.age}歲`; }
+function age(G) { return tInfo(G.t).age; }
+function totalStat(G) { const s = G.stats; return s.pro + s.body + s.pol + s.fam + s.rep; }
+function overall(G) { return totalStat(G) * 2; }
+function rankName(G) { return RANKS[G.rank]; }
+function displayName(G) { return G.ruzhui ? 'Lu·凡爾瑟' : 'Lu'; }
+function logLife(G, text) { G.life.push({ age: age(G), year: tInfo(G.t).year, text }); }
+
+function setTime(G, t) {
+  const o = tInfo(G.t), n = tInfo(t);
+  G.t = t;
+  for (const th of [40, 50, 60, 70]) {
+    if (o.age < th && n.age >= th) { G.stats.body = clamp(G.stats.body - 1, 1, 10); G.deltas.push({ label: '體魄', d: -1, reason: `年過${th}，筋骨不復當年` }); }
+  }
+  if (G.family) {
+    if (G.family.father.alive && n.age >= G.fatherEnd) { G.family.father.alive = false; G.deltas.push({ label: '家庭和睦', d: -1, reason: `父親${G.family.father.name}過世` }); G.stats.fam = clamp(G.stats.fam - 1, 1, 10); logLife(G, `父親${G.family.father.name}過世。`); }
+    if (G.family.mother.alive && n.age >= G.motherEnd) { G.family.mother.alive = false; G.deltas.push({ label: '家庭和睦', d: -1, reason: `母親${G.family.mother.name}過世` }); G.stats.fam = clamp(G.stats.fam - 1, 1, 10); logLife(G, `母親${G.family.mother.name}過世。`); }
+  }
+}
+
+/* ---------- 效果套用 ---------- */
+function bumpRel(v, d) {
+  if (d > 0) { const m = 1 - v / 150; return Math.max(1, Math.round(d * m + 0.3)); }
+  const m = 1 + v / 200; return -Math.max(1, Math.round(-d * m));
+}
+function applyFx(G, fx, ctx) {
+  if (!fx) return;
+  for (const k of ['pro', 'body', 'pol', 'fam', 'rep']) {
+    if (fx[k]) {
+      const nv = clamp(G.stats[k] + fx[k], 1, 10), d = nv - G.stats[k];
+      G.stats[k] = nv;
+      if (d) G.deltas.push({ label: ATTR_N[k], d, reason: (fx.why && fx.why[k]) || ctx || '' });
+    }
+  }
+  if (fx.aff) {
+    const d = bumpRel(G.aff, fx.aff), nv = clamp(G.aff + d, 0, 100); const dd = nv - G.aff; G.aff = nv; G.lastContact = G.t;
+    if (dd) G.deltas.push({ label: '好感', d: dd, reason: (fx.why && fx.why.aff) || ctx || '' });
+  }
+  if (fx.trust) {
+    const d = bumpRel(G.trust, fx.trust), nv = clamp(G.trust + d, 0, 100); const dd = nv - G.trust; G.trust = nv; G.lastContact = G.t;
+    if (dd) G.deltas.push({ label: '信任', d: dd, reason: (fx.why && fx.why.trust) || ctx || '' });
+  }
+  if (fx.mitch) {
+    const d = bumpRel(G.mitch.bond, fx.mitch), nv = clamp(G.mitch.bond + d, 0, 100); const dd = nv - G.mitch.bond; G.mitch.bond = nv;
+    if (dd) G.deltas.push({ label: '米切爾羈絆', d: dd, reason: (fx.why && fx.why.mitch) || ctx || '' });
+  }
+  if (fx.merit) { fx.merit = Math.max(-G.merit, fx.merit); G.merit += fx.merit; G.deltas.push({ label: '戰功', d: fx.merit, reason: ctx || '' }); }
+  if (fx.debt) { G.debt = Math.max(0, G.debt + fx.debt); G.deltas.push({ label: '人情債', d: fx.debt, reason: (fx.why && fx.why.debt) || ctx || '' }); }
+  if (fx.syn) G.syn = clamp(G.syn + fx.syn, -2, 2);
+  if (fx.prep) G.prepBank = clamp(G.prepBank + fx.prep, 0, 2);
+  if (fx.tier && TIER_B[fx.tier] > TIER_B[G.tier]) { G.tier = fx.tier; G.deltas.push({ label: '模組等級', d: 0, reason: '取得' + TIER_N[fx.tier], text: '升級為' + TIER_N[fx.tier] }); }
+  if (fx.intel) Object.assign(G.intel, fx.intel);
+  if (fx.tags) Object.assign(G.tags, fx.tags);
+  if (fx.carry) for (const c of fx.carry) G.carry.push(Object.assign({ left: 1 }, c));
+  if (fx.noise && G.exam) G.exam.noise = clamp(G.exam.noise + fx.noise, 0, 10);
+  if (fx.inj) addInjury(G, fx.inj === true ? null : fx.inj);
+  if (fx.log) logLife(G, fx.log);
+  if (fx.hook) fx.hook(G);
+}
+function addInjury(G, spec) {
+  const pool = INJURIES.filter(i => !G.injuries.some(x => x.name === i.name));
+  const inj = spec && spec.name ? spec : (pool.length ? G.pick(pool) : INJURIES[0]);
+  const rec = { name: inj.name, desc: inj.desc, pen: inj.pen, cats: inj.cats, age: age(G), year: tInfo(G.t).year };
+  if (G.injuries.some(x => x.name === rec.name)) { rec.pen = 1; rec.name += '（復發加重）'; }
+  G.injuries.push(rec);
+  G.deltas.push({ label: '傷病檔案', d: 0, reason: '', text: `新增：${rec.name}（${rec.desc}）` });
+  logLife(G, `留下永久傷病：${rec.name}。`);
+  if (G.rel >= 3 && !G.married) G.tags.newInj = true; else if (G.rel >= 5) G.tags.newInj = true;
+}
+
+/* ---------- 裝備 ---------- */
+function slotsUsed(mods) { return mods.reduce((s, m) => s + MODS[m].s, 0); }
+function ammoFor(mods, preset) {
+  const gren = mods.includes('ugl') ? (mods.includes('breach') ? 8 : 6) : 0;
+  return { gren, frag: mods.includes('frag') ? 3 : 0, smoke: mods.includes('smoke') ? 2 : 0 };
+}
+function setLoadout(G, mods, fresh) {
+  G.loadout = mods.slice();
+  const base = ammoFor(mods);
+  if (fresh) { G.used = { gren: 0, frag: 0, smoke: 0 }; }
+  G.ammo = { gren: Math.max(0, base.gren - G.used.gren), frag: Math.max(0, base.frag - G.used.frag), smoke: Math.max(0, base.smoke - G.used.smoke) };
+}
+function consume(G, a) {
+  if (!a) return;
+  for (const k of ['gren', 'frag', 'smoke']) if (a[k]) { const n = Math.min(G.ammo[k], a[k]); G.ammo[k] -= n; G.used[k] += n; }
+}
+function presetOf(mods) {
+  for (const k in PRESETS) { const p = PRESETS[k].mods; if (p.length === mods.length && p.every(m => mods.includes(m))) return PRESETS[k]; }
+  return null;
+}
+function loadoutName(mods) { const p = presetOf(mods); return p ? `配置${p.id}「${p.name}」` : '自訂配置'; }
+function equipMod(G, cat, ammo) {
+  if (!COMBAT.has(cat)) return { v: 0, parts: [['非戰鬥行動，不計裝備', 0]] };
+  const parts = []; let sum = TIER_B[G.tier];
+  parts.push([`${TIER_N[G.tier]}（機架統一，差在模組等級）`, TIER_B[G.tier]]);
+  for (const m of G.loadout) {
+    const d = MODS[m], b = d.b[cat];
+    if (!b) continue;
+    if (d.ammo && ammo && ammo[d.ammo] <= 0) { parts.push([d.n + '（耗材用盡，失效）', 0]); continue; }
+    parts.push([d.n, b]); sum += b;
+  }
+  const v = clamp(sum, -2, 2);
+  if (v !== sum) parts.push(['達到修正上限', v - sum]);
+  return { v, parts };
+}
+
+/* ---------- 隊伍 ---------- */
+function teamAlive(G) { return G.team.filter(m => m.alive); }
+function teamMod(G) {
+  const al = teamAlive(G), n = al.length + 1;
+  const parts = [];
+  const sm = { 1: -2, 2: 0, 3: 1, 4: 1 }[n] || 1;
+  parts.push([n === 1 ? '孤狼：火力與視野薄弱' : `${n}人編隊的分工彈性`, sm]);
+  let v = sm;
+  if (n > 1) {
+    const syn = clamp(G.syn + al.reduce((s, m) => s + m.syn, 0), -2, 2);
+    if (syn) { parts.push(['隊內默契／磨合', syn]); v += syn; }
+    const avg = al.reduce((s, m) => s + m.rating, 0) / al.length;
+    if (avg >= 7) { parts.push(['隊友整體實力強', 1]); v += 1; } else if (avg <= 4.5) { parts.push(['隊友整體實力偏弱', -1]); v -= 1; }
+  }
+  return { v, parts };
+}
+
+/* ---------- 判定 ---------- */
+function attrValue(G, a) {
+  const s = G.stats;
+  switch (a) {
+    case 'proBody': return [Math.max(s.pro, s.body), s.pro >= s.body ? '專業' : '體魄'];
+    case 'polRep': return [Math.max(s.pol, s.rep), s.pol >= s.rep ? '權謀' : '聲望'];
+    case 'proPol': return [Math.max(s.pro, s.pol), s.pro >= s.pol ? '專業' : '權謀'];
+    default: return [s[a], ATTR_N[a]];
+  }
+}
+function veroMod(G) {
+  if (G.rel < 3) return null;
+  if (G.aff >= 70 && G.trust >= 60) return [`與薇若妮卡好感${G.aff}／信任${G.trust}，默契十足`, 1];
+  if (G.aff < 30 || G.trust < 30) return [`與薇若妮卡好感${G.aff}／信任${G.trust}，猜忌與心結`, -1];
+  return null;
+}
+function evalOpt(G, o) {
+  const [av, an] = attrValue(G, o.attr);
+  const eq = o.equip ? { v: o.equip[0], parts: [[o.equip[1], o.equip[0]]] } : equipMod(G, o.cat, G.ammo);
+  const sit = [];
+  for (const s of (o.situ || [])) sit.push(s);
+  const combat = COMBAT.has(o.cat);
+  if (o.team) { const tm = teamMod(G); for (const p of tm.parts) if (p[1]) sit.push(p); }
+  let inj = 0; const injN = [];
+  for (const i of G.injuries) if (i.cats.includes('all') || i.cats.includes(o.cat)) { inj += i.pen; injN.push(i.name); }
+  if (inj) sit.push([`傷病影響（${injN.join('、')}）`, -Math.min(3, inj)]);
+  if (G.stats.fam <= 3 && combat) sit.push(['牽掛家人，心神不寧', -1]);
+  if (G.stats.fam >= 8) sit.push(['家人的支持，心裡踏實', 1]);
+  if (o.cat === 'politics' && G.debt > 0) sit.push([`欠下人情債×${G.debt}，被對方牽制`, -1]);
+  if (o.vero) { const v = veroMod(G); if (v) sit.push(v); }
+  if (o.mitch && G.mitch.bond >= 55 && G.mitch.status === 'ok') sit.push([`米切爾羈絆${G.mitch.bond}，他會在你背後`, 1]);
+  const carried = [];
+  for (const c of G.carry) if (!c.cats || c.cats.includes(o.cat) || (c.cats.includes('combat') && combat)) { sit.push([c.why, c.v]); carried.push(c); }
+  let sitSum = sit.reduce((s, x) => s + x[1], 0);
+  const sitV = clamp(sitSum, -3, 3);
+  if (sitV !== sitSum) sit.push(['情境修正達到上限', sitV - sitSum]);
+  const prep = clamp((o.prep || 0) + G.prepBank, 0, 2);
+  const prepWhy = [];
+  if (o.prep) prepWhy.push([o.prepWhy || '事前準備', o.prep]);
+  if (G.prepBank) prepWhy.push(['先前的偵察、演練與計畫', G.prepBank]);
+  const eff = av + eq.v + sitV + prep + EASE;
+  const gap = eff - o.diff;
+  let key, minor = false, close = false;
+  if (gap >= 4) key = 'great';
+  else if (gap >= 0) { key = 'success'; minor = gap <= 1; }
+  else if (gap <= -6) key = 'bigfail';
+  else { key = 'fail'; close = gap >= -2; }
+  return { attrName: an, attrVal: av, equip: eq, situ: sit, situV: sitV, prep, prepWhy, ease: EASE, eff, diff: o.diff, why: o.why || '', gap, key, minor, close, carried };
+}
+const RES_N = { great: '大成功', success: '成功', fail: '失敗', bigfail: '大失敗' };
+function resLabel(ev) {
+  if (ev.key === 'success' && ev.minor) return '成功（附輕微代價）';
+  if (ev.key === 'fail' && ev.close) return '失敗（可承擔代價轉為悲壯成功）';
+  return RES_N[ev.key];
+}
+
+function sanitizeMods(G, mods) {
+  const out = [];
+  for (const m of mods) if (MODS[m] && !out.includes(m)) out.push(m);
+  if (!out.includes('rifle')) out.unshift('rifle');
+  while (slotsUsed(out) > SLOT_CAP[G.tier]) { for (let i = out.length - 1; i >= 0; i--) if (out[i] !== 'rifle') { out.splice(i, 1); break; } }
+  return out;
+}
+/* ===== 流程：動態、節點、判定結算、跳躍 ===== */
+const EV = {};   // 事件表
+const OPS = {};  // 大型行動表
+const PEACE = []; // 和平期日常事件
+
+function ch(G, title) {
+  if (G.chNo > 0 && G.chNo % 5 === 0 && !G.sumDone[G.chNo]) { G.sumDone[G.chNo] = 1; pushSummary(G); }
+  G.chNo++;
+  G.feed.push({ k: 'ch', no: G.chNo, when: when(G), title });
+}
+function say(G, ...ts) { for (const t of ts) { const s = typeof t === 'function' ? t(G) : t; if (s) G.feed.push({ k: 'p', text: s }); } }
+function flush(G) { if (G.deltas.length) { G.feed.push({ k: 'delta', items: G.deltas.slice() }); G.deltas = []; } }
+function pushSummary(G) {
+  G.feed.push({
+    k: 'summary', title: `存檔摘要（第${G.chNo}章）`, lines: [
+      `${displayName(G)}｜${age(G)}歲｜${rankName(G)}｜戰功${G.merit}`,
+      `五維：專業${G.stats.pro} 體魄${G.stats.body} 權謀${G.stats.pol} 家庭和睦${G.stats.fam} 聲望${G.stats.rep}`,
+      `薇若妮卡：好感${G.aff}／信任${G.trust}｜米切爾羈絆${G.mitch.bond}（${G.mitch.status === 'ok' ? '健在' : '已不在前線'}）`,
+      `傷病檔案：${G.injuries.length ? G.injuries.map(i => i.name).join('、') : '無'}`,
+      `裝備：${TIER_N[G.tier]}，${loadoutName(G.loadout)}`,
+      `未解伏筆：${[G.debt ? `人情債×${G.debt}` : '', G.hidden ? '對薇若妮卡隱瞞了傷情' : '', G.pp && G.pp.length ? '' : ''].filter(Boolean).join('、') || '暫無'}`
+    ]
+  });
+}
+function pickBlock(G, name, line) { G.feed.push({ k: 'pick', name, line }); }
+
+/* ---------- 節點建立 ---------- */
+function evalX(G, o) {
+  const sl = G.loadout, sa = G.ammo;
+  if (o.loadout) {
+    G.loadout = o.loadout.slice();
+    const base = ammoFor(o.loadout), u = o.loadoutFresh ? { gren: 0, frag: 0, smoke: 0 } : G.used;
+    G.ammo = { gren: Math.max(0, base.gren - u.gren), frag: Math.max(0, base.frag - u.frag), smoke: Math.max(0, base.smoke - u.smoke) };
+  }
+  const ev = evalOpt(G, o);
+  G.loadout = sl; G.ammo = sa;
+  return ev;
+}
+function mkPlans(G, cfg) {
+  const opts = cfg.opts.map((o, i) => {
+    const dis = o.need ? o.need(G) : null;
+    return { id: i, o, name: o.name, line: o.line, kind: o.kind, prev: evalX(G, o), disabled: dis || null };
+  });
+  G.node = { kind: 'plans', title: cfg.title || '方案組合', hint: cfg.hint || '', opts, free: cfg.free || null, next: cfg.next || null, tag: cfg.tag || '' };
+}
+function previewFree(G, sel) { const o = G.node.free.build(G, sel); return { o, ev: evalX(G, o) }; }
+
+function styleGroup(base, G) {
+  return { id: 'style', label: '行動路線', choices: base.map(o => ({ id: o.kind, label: o.name, desc: o.line, disabled: (G && o.need) ? o.need(G) : null })) };
+}
+function eventFree(G, base) {
+  const mOk = G.mitch.status === 'ok' && G.mitch.bond >= 20, vOk = G.rel >= 3;
+  const groups = [styleGroup(base, G), {
+    id: 'aid', label: '借力方式', choices: [
+      { id: 'none', label: '全靠自己', desc: '不欠任何人' },
+      { id: 'mitch', label: '請米切爾搭手', desc: '情境+1；羈絆+1', disabled: mOk ? null : '羈絆不足或他不在' },
+      { id: 'vero', label: '請薇若妮卡出面', desc: '情境+1；好感+1，但她會記帳（人情債+1）', disabled: vOk ? null : '尚未與她確立關係' },
+      { id: 'prep', label: '先花一季準備', desc: '準備+1；多耗一季光陰', }
+    ]
+  }];
+  return {
+    groups, build(G, sel) {
+      const b = base.find(x => x.kind === (sel.style || base[0].kind)) || base[0];
+      const o = Object.assign({}, b, { situ: (b.situ || []).slice(), name: b.name + (sel.aid && sel.aid !== 'none' ? '（借力）' : '') });
+      const win = Object.assign({}, b.win, { fx: Object.assign({}, b.win && b.win.fx) });
+      const aid = sel.aid || 'none';
+      if (aid === 'mitch') { o.situ.push(['米切爾替你搭手', 1]); win.fx.mitch = (win.fx.mitch || 0) + 1; }
+      if (aid === 'vero') { o.situ.push(['薇若妮卡出面助陣', 1]); o.vero = true; win.fx.aff = (win.fx.aff || 0) + 1; win.fx.debt = (win.fx.debt || 0) + 1; win.fx.why = Object.assign({}, win.fx.why, { debt: '她記下了這筆帳' }); }
+      if (aid === 'prep') { o.prep = (o.prep || 0) + 1; o.prepWhy = '多花一季準備'; o.extraT = 1; }
+      o.win = win; o.line = b.line + (aid !== 'none' ? '＋' + ({ mitch: '請米切爾搭手', vero: '請薇若妮卡出面', prep: '先準備一季' })[aid] : '');
+      return o;
+    }
+  };
+}
+function phaseFree(G, base, opt) {
+  opt = opt || {};
+  const A = G.ammo, al = teamAlive(G).length, cover = al > 0 || (G.mitch.status === 'ok' && G.mitch.bond >= 25 && G.rank >= 2);
+  const groups = [styleGroup(base, G), {
+    id: 'aid', label: '輔助手段', choices: [
+      { id: 'none', label: '不額外投入', desc: '照原方案執行' },
+      { id: 'gren', label: '加量榴彈', desc: '情境+1；榴彈−2' + (opt.exam ? '，噪音+2' : ''), disabled: A.gren >= 1 && G.loadout.includes('ugl') ? null : '無榴彈或發射器' },
+      { id: 'smoke', label: '施放煙幕', desc: '情境+1；煙幕−1', disabled: A.smoke >= 1 ? null : '煙幕已用盡' },
+      { id: 'cover', label: '要求火力掩護', desc: '情境+1；成功時功勞分攤（戰功／評分−1）', disabled: cover ? null : '沒有人能替你掩護' }
+    ]
+  }, {
+    id: 'swap', label: '調整裝備配置', choices: [
+      { id: 'keep', label: '維持現有（' + loadoutName(G.loadout) + '）', desc: '不耗時間' },
+      ...['A', 'B', 'C'].filter(k => !(presetOf(G.loadout) && presetOf(G.loadout).id === k)).map(k => ({ id: k, label: `換成配置${k}「${PRESETS[k].name}」`, desc: '情境−1（換裝耗時）；耗材不補充' }))
+    ]
+  }];
+  return {
+    groups, build(G, sel) {
+      const b = base.find(x => x.kind === (sel.style || base[0].kind)) || base[0];
+      const o = Object.assign({}, b, { situ: (b.situ || []).slice(), ammo: Object.assign({}, b.ammo) });
+      const aid = sel.aid || 'none', sw = sel.swap || 'keep';
+      const tags = [];
+      if (sw !== 'keep' && PRESETS[sw]) { o.loadout = PRESETS[sw].mods.slice(); o.situ.push(['換裝耗時，錯失先機', -1]); tags.push('換' + sw); }
+      if (aid === 'gren') { o.situ.push(['額外投入榴彈', 1]); o.ammo.gren = (o.ammo.gren || 0) + 2; o.noise = (o.noise || 0) + (opt.exam ? 2 : 0); tags.push('加量榴彈'); }
+      if (aid === 'smoke') { o.situ.push(['煙幕掩護', 1]); o.ammo.smoke = (o.ammo.smoke || 0) + 1; tags.push('施放煙幕'); }
+      if (aid === 'cover') { o.situ.push(['火力掩護', 1]); o.shared = true; tags.push('火力掩護'); }
+      o.name = b.name + (tags.length ? '＋' + tags.join('＋') : '');
+      o.line = b.line + (tags.length ? '＋' + tags.join('＋') : '');
+      return o;
+    }
+  };
+}
+
+/* ---------- 選項執行與判定 ---------- */
+function runOption(G, o, node) {
+  G.nextFn = node.next;
+  if (o.loadout) setLoadout(G, o.loadout, !!o.loadoutFresh);
+  pickBlock(G, o.name, o.line);
+  if (o.pre) o.pre(G);
+  runCheck(G, o);
+}
+function runCheck(G, o) {
+  const ev = evalOpt(G, o);
+  for (const c of ev.carried) c.left--;
+  G.carry = G.carry.filter(c => c.left > 0);
+  G.prepBank = 0;
+  G.feed.push({ k: 'judge', name: o.name, ev, label: resLabel(ev) });
+  if (ev.key === 'fail' && ev.close) {
+    G.pending = { o, ev };
+    const cost = tragicCost(G, o);
+    G.node = { kind: 'tragic', title: '悲壯代價', hint: `差距${sgn(ev.gap)}，只差一步。你可以主動承擔重大代價，把失敗轉為悲壯的成功。`, cost: cost.desc, o };
+    return;
+  }
+  finish(G, o, ev, false);
+}
+function tragicCost(G, o) {
+  const k = o.kind;
+  if (k === 'iron') return { desc: '永久傷病一項（寫入傷病檔案，之後成為判定的負面修正）', fx: { inj: true } };
+  if (k === 'trick') return { desc: '人情債+1，聲望−1（借來的路得還）', fx: { debt: 1, rep: -1 } };
+  return { desc: '家庭和睦−1，聲望−1（把該陪家人的時間押了進去）', fx: { fam: -1, rep: -1 } };
+}
+function minorCost(G, o) {
+  const opts = [];
+  if (G.exam) opts.push(['動靜略大，噪音+1', () => applyFx(G, { noise: 1 })]);
+  const ak = ['gren', 'smoke', 'frag'].filter(k => G.ammo[k] > 0);
+  if (ak.length) { const k = ak[0]; opts.push([`多耗了一份${{ gren: '榴彈', smoke: '煙幕', frag: '破片彈' }[k]}`, () => consume(G, { [k]: 1 })]); }
+  opts.push(['餘悸未消，下一次行動情境−1', () => G.carry.push({ why: '餘悸未消', v: -1, left: 1 })]);
+  const pick = opts[G.int(0, opts.length - 1)];
+  pick[1]();
+  say(G, `輕微代價：${pick[0]}。`);
+}
+function finish(G, o, ev, tragic) {
+  const succ = tragic || ev.key === 'great' || ev.key === 'success';
+  if (o.ammo) consume(G, o.ammo);
+  if (o.noise && G.exam) applyFx(G, { noise: o.noise });
+  const sec = succ ? o.win : o.lose;
+  if (sec && sec.t) say(G, sec.t);
+  applyFx(G, sec && sec.fx, o.name);
+  if (ev.key === 'great') {
+    applyFx(G, Object.assign({ rep: 1 }, o.great && o.great.fx), '大成功額外收益');
+    say(G, (o.great && o.great.t) || '大成功：差距遠超預期，所有人都看見了你的處理。');
+  }
+  if (tragic) {
+    const c = tragicCost(G, o);
+    applyFx(G, c.fx, '悲壯代價');
+    say(G, `你咬牙承擔了代價（${c.desc}）。事情成了，但有些東西回不來了。`);
+  }
+  if (ev.key === 'success' && ev.minor) minorCost(G, o);
+  if (ev.key === 'bigfail') {
+    applyFx(G, { inj: true, rep: -1 }, '大失敗');
+    say(G, '大失敗。你倒下了，但命還在（劇本保護）；這一次的代價會永久留在傷病檔案裡。');
+  }
+  if (o.shared && succ) applyFx(G, { merit: G.exam ? 0 : -1 }, '功勞與隊友分攤');
+  if (o.shared && succ && G.exam) G.exam.score.tactics = Math.max(0, G.exam.score.tactics - 1);
+  if (o.after) o.after(G, { succ, ev, tragic, key: ev.key });
+  if (o.extraT) setTime(G, G.t + o.extraT);
+  flush(G);
+  afterResolve(G);
+}
+function afterResolve(G) {
+  if (G.tags.newInj && G.rel >= 3 && !G.ended) { G.tags.newInj = false; return confessNode(G); }
+  G.tags.newInj = false;
+  const f = G.nextFn; G.nextFn = null;
+  if (f) f(G);
+}
+function confessNode(G) {
+  const f = G.nextFn;
+  ch(G, '傷情要不要說');
+  say(G, `${G.injuries[G.injuries.length - 1].name}。這件事瞞得住別人，瞞不住換藥時的手。薇若妮卡會在最短的時間內發現你的步伐不對。`);
+  G.node = {
+    kind: 'pick', title: '你要怎麼對她說？', hint: '「寧願自己扛」是你的老毛病，也是她最容易炸毛的地方。', next: f,
+    opts: [
+      { name: '坦白交代', line: '自己走進會長室說清楚', desc: '被罵一頓，但信任會往上走', t: '你把診斷書放到她桌上。她看了三十秒，沒說話，然後把你按在椅子上，親手拆開繃帶重綁。罵人的話一句都沒少，只是手很輕。', fx: { aff: -1, trust: 3, why: { aff: '被罵了一頓', trust: '主動坦白' } } },
+      { name: '先瞞著', line: '以後再說，現在不想讓她擔心', desc: '短期無事；一旦穿幫，信任與好感都會重挫', t: '你把傷情壓進外套裡，笑得很自然。這不是第一次，也大概不會是最後一次。', fx: { hook: G => { G.hidden = true; } } }
+    ]
+  };
+}
+function tragicChoose(G, yes) {
+  const { o, ev } = G.pending; G.pending = null;
+  finish(G, o, ev, yes);
+}
+
+/* ---------- 簡單選項（無判定） ---------- */
+function pickChoose(G, idx, node) {
+  const n = node || G.node, o = n.opts[idx];
+  if (!o || o.disabled) return false;
+  G.nextFn = n.next;
+  pickBlock(G, o.name, o.line);
+  if (o.t) say(G, o.t);
+  applyFx(G, o.fx, o.name);
+  if (o.after) o.after(G);
+  flush(G);
+  if (o.go) { o.go(G); return true; }
+  afterResolve(G);
+  return true;
+}
+
+/* ---------- 事件啟動 ---------- */
+function startEvent(G, id) {
+  const e = EV[id];
+  if (!e) throw new Error('missing event ' + id);
+  ch(G, e.title);
+  if (e.vero && G.hidden && G.rel >= 3) {
+    say(G, '還沒開口，薇若妮卡先把你拉到走廊角落，直接掀開你的袖口。你瞞下的那件事，她早就知道了，只是在等你自己說。');
+    applyFx(G, { trust: -6, aff: -6, why: { trust: '隱瞞傷情被拆穿', aff: '隱瞞傷情被拆穿' } }, '穿幫');
+    G.hidden = false;
+    flush(G);
+  }
+  if (e.init) e.init(G);
+  say(G, e.text);
+  if (e.pick) {
+    const opts = e.pick(G);
+    G.node = { kind: 'pick', title: e.pickTitle || '你的選擇', hint: e.hint || '', opts, next: goNext };
+    return;
+  }
+  const opts = e.opts(G);
+  mkPlans(G, { title: '方案組合', hint: e.hint || '', opts, free: eventFree(G, opts.slice(0, 3)), next: goNext, tag: id });
+}
+
+/* ---------- 時間軸 ---------- */
+function goNext(G) {
+  if (G.ended) return;
+  flush(G);
+  const b = (G.beats || BEATS)[G.bi + 1];
+  if (!b) return endGame(G);
+  if (b.cond && !b.cond(G)) { G.bi++; return goNext(G); }
+  const target = beatTarget(G, b);
+  const gap = target - G.t;
+  if (b.jump && gap >= 12) return jumpNode(G, b, gap);
+  G.bi++;
+  setTime(G, Math.max(G.t, target));
+  if (b.type === 'exam') return startExam(G);
+  if (b.type === 'op') return startOp(G, b.id);
+  if (b.type === 'end') return endGame(G);
+  startEvent(G, b.id);
+}
+function jumpNode(G, b, gap) {
+  const yrs = gap / 4;
+  const choices = [3, 5, 8, 12, 20].filter(y => y < yrs);
+  const opts = choices.map(y => ({ name: `躍進${y}年`, line: `歲月跳躍 ${y} 年`, desc: `途中可能插入一章日常；剩餘約${Math.round(yrs - y)}年`, go: G => doJump(G, y * 4, b) }));
+  opts.push({ name: `直接躍進到${tInfo(beatTarget(G, b)).age}歲`, line: `歲月跳躍 ${Math.round(yrs)} 年`, desc: '和平期不再細寫，直達下一個重大節點', confirm: true, go: G => doJump(G, gap, b) });
+  ch(G, '和平期');
+  say(G, jumpIntro(G, b));
+  G.node = { kind: 'pick', title: '歲月跳躍', hint: '和平期經你確認後躍進。每次躍進都會生成【世界長河變遷摘要】。', opts, next: goNext };
+}
+function jumpIntro(G, b) {
+  const fm = G.married ? '妻子在廚房和你爭論孩子的睡前故事要不要加戰術註解' : '訓練場的燈比營房的燈亮得晚';
+  return `邊境暫時安靜了下來，連配給站的隊伍都短了一截。${fm}。你知道這樣的日子不會永遠，但現在，可以選擇讓時間走快一點。`;
+}
+function worldSummary(G, from, to) {
+  const years = Math.round((to - from) / 4);
+  const a = tInfo(from).age, z = tInfo(to).age;
+  const L = [];
+  const gov = G.pick(['國防議會改選，公爵派與伯爵派的議席差距縮小到三席', '軍部通過新預算，邊境補給線的合約全面改由軍工體系承包', '議會內爆發「模組授權法」之爭，貴族壟斷技術的局面首度被公開質疑', '凡爾瑟公爵家與維爾哈特家聯手推動邊境屯墾，同鄉對此毀譽參半']);
+  const fr = G.pick(['邊境自由陣線改用更碎的小隊滲透，大規模會戰少了，遭遇戰多了', '廢工業帶的幾座舊鍛造廠被雙方輪流占領，成了誰都不敢久留的鬼城', '前線新增三座補給哨，民用承重架的改裝件終於有了官方認證', '叛軍內部分裂出兩個派系，邊境偶爾傳出停火談判的風聲']);
+  const tech = G.pick(['制式模組的槽位增加半格，據說訂製模組已經領先兩代', '推進模組小型化，輕裝機動配置的價格掉了三成', '感測模組普及，單靠偽裝已經很難瞞過巡邏機', '民間改裝市場被取締，邊境志願役的裝備更依賴軍方配發']);
+  L.push(`【政局】${gov}。`, `【前線】${fr}。`, `【技術】${tech}。`);
+  const fam = [];
+  if (G.family.father.alive) fam.push(`父親${G.family.father.name}${z >= 45 ? '背更駝了，仍堅持自己修屋頂' : '依舊少話'}`); else fam.push(`父親${G.family.father.name}已經不在了`);
+  if (G.family.mother.alive) fam.push(`母親${G.family.mother.name}的白髮多了不少`); else fam.push(`母親${G.family.mother.name}已經不在了`);
+  const sa = 6 + (z - 15);
+  fam.push(`妹妹${G.family.sister.name}${sa}歲了，${sa < 16 ? '正在長高' : sa < 24 ? '嚷著要去軍工學校' : '有了自己的日子'}`);
+  L.push(`【家人】${fam.join('；')}。`);
+  if (G.mitch.status === 'ok') L.push(`【戰友】米切爾${G.mitch.bond >= 60 ? '照例每季寄來一箱不知道從哪弄來的罐頭，附一張寫著「活著回信」的字條' : '很少聯絡，偶爾托人帶句話'}。`);
+  G.feed.push({ k: 'world', title: `世界長河變遷摘要：${a}歲 → ${z}歲（${years}年）`, lines: L });
+}
+function doJump(G, seasons, b) {
+  const from = G.t, target = beatTarget(G, b);
+  const to = Math.min(target, G.t + seasons);
+  setTime(G, to);
+  worldSummary(G, from, to);
+  flush(G);
+  // 和平期自然衰減
+  if (G.rel >= 3 && !G.married) { applyFx(G, { aff: -2 }, '分隔期自然疏遠'); flush(G); }
+  if (to >= target) return goNext(G);
+  // 插入日常章
+  const pool = PEACE.filter(p => (!p.cond || p.cond(G)) && !G.lastDaily.includes(p.id));
+  const d = pool.length ? pool[G.int(0, pool.length - 1)] : PEACE[0];
+  G.lastDaily.push(d.id); if (G.lastDaily.length > 4) G.lastDaily.shift();
+  startDaily(G, d);
+}
+function startDaily(G, d) {
+  ch(G, d.title);
+  say(G, d.text);
+  const opts = d.opts(G);
+  mkPlans(G, { title: '方案組合', hint: '日常章：沿用上次配置，不進入配置階段。', opts, free: eventFree(G, opts.slice(0, 3)), next: goNext, tag: d.id });
+}
+
+/* ---------- 晉升 ---------- */
+function promoteCheck(G) {
+  while (G.rank >= 3 && G.rank < 8 && G.merit >= RANK_MERIT[G.rank + 1] && (G.rank + 1 < 7 || G.stats.rep >= 6)) {
+    G.rank++;
+    G.deltas.push({ label: '軍階', d: 0, reason: '', text: `晉升為${RANKS[G.rank]}` });
+    logLife(G, `晉升為${RANKS[G.rank]}。`);
+  }
+}
+
+function beatTarget(G, b) {
+  if (b.t != null) return b.t;
+  const a = b.ageFn ? b.ageFn(G) : b.age;
+  return ageToT(a, b.s || 0);
+}
+
+function insertBeats(G, list) {
+  for (const nb of list) {
+    const tn = beatTarget(G, nb);
+    let i = G.bi + 1;
+    while (i < G.beats.length && beatTarget(G, G.beats[i]) <= tn) i++;
+    G.beats.splice(i, 0, nb);
+  }
+}
+/* ===== 第1章：入學考核（廢棄發電站多隊PVP） ===== */
+const ZONES = {
+  tower: { n: '配電塔外圍', diff: 10, d: '離目標最近，也是各隊視線與無人機熱源最密的地方' },
+  ally: { n: '隊友集結點（鍋爐房）', diff: 8, d: '同隊落點相鄰，不必花時間集結' },
+  edge: { n: '隱蔽邊緣區（冷卻塔與煤倉）', diff: 7, d: '最安全，但離配電塔最遠，起手慢' },
+  mid: { n: '中央汽輪機廳', diff: 9, d: '視野開闊的中立地帶，孤狼常選' }
+};
+const SENIOR_N = ['克勞斯', '莉安', '馬丁', '奧蘿拉', '雷納德', '希爾薇'];
+
+function inviteSpec(G, c) {
+  const sit = [];
+  if (c.origin === 'border') sit.push(['同為邊境出身，彼此認得口音', 1]);
+  if (c.origin === 'noble') sit.push(['階級隔閡，貴族對邊境生多有疑慮', -2]);
+  return { name: `邀請${c.name}`, attr: 'polRep', cat: 'social', diff: c.diff, why: `${c.name}（${c.trait}・${c.role}）的接受門檻`, situ: sit, equip: [0, '邀請說服，不計裝備'] };
+}
+function candLine(c) { return `${c.name}｜${{ border: '邊境', common: '平民', noble: '貴族' }[c.origin]}｜${c.role}｜${TIER_N[c.tier]}｜${c.trait}`; }
+
+function startExam(G) {
+  const f = G.family;
+  G.rel = Math.max(G.rel, 1);
+  ch(G, '校園集結與自由組隊');
+  say(G,
+    `西元2060年，秋。邊境配給區的天還沒亮，${f.father.name}（${f.father.job}，${f.father.trait}）把一袋壓扁的合成蛋白塊塞進你的背包，什麼也沒說，只在你肩上按了兩下。母親${f.mother.name}（${f.mother.job}，${f.mother.trait}）替你把領口折正，嘴上說著「別餓著」，眼睛一直沒離開你。`,
+    `六歲的${f.sister.name}（${f.sister.trait}）抱著你的腿不放。她${f.sister.quirk}，仰著臉說：「哥哥，你要回來。」你蹲下去，把她額前的碎髮撥開。志願役合約、配給券、一家人的下個月，你在心裡逐條數過：這條路走不通，就沒有下一條。`,
+    `防衛大學附屬高中的校門是三層混凝土防禦閘，兩側半埋式機槍巢的槍口漆著白線。報到棚下排著長長一列考生，邊境志願役十二人擠在最角落，肩上都是改裝的Ⅰ級民用承重架，焊痕還泛著光。`,
+    `「喂，一年級。」場務學長把你的識別牌拍在登記台上，嘴快得像連發，「這副架子你自己焊的？關節的位置偏了兩公分，打起來會卡。我是米切爾，二年級，也是邊境來的。別被貴族那邊的華麗骨架嚇到，打起來靠的是人。」他一邊說一邊替你鎖緊了護膝。`,
+    `廣播響起，司令台上站著一名黑長髮的少女，肩章是學生會會長。她是凡爾瑟公爵的獨生女薇若妮卡，十八歲，三年級。「考核場地是舊第九發電站，多隊對抗。」她的聲音端莊平穩，「目標是佔領配電塔並守住十分鐘。場內另有學長姐組與軍部的巡邏無人機，兩者會依規則行動，聲響與暴露程度都會被記錄。評分標準，我會在簡報時公開。」她的目光掃過台下，在你的名牌上停了半秒，筆尖在名冊上圈了一下。`,
+    `你需要先決定怎麼組隊：邀請對象得雙向同意，說服的難度與你的權謀、聲望、出身有關；人數少，評價與聲望更高，但火力與容錯都薄；人數多，戰力穩，功勞要分攤。也可以一個人出戰。`
+  );
+  G.node = { kind: 'team', title: '自由組隊', hint: '最多邀請3人。被邀請者是否答應由判定決定，公開有效能力值與難度。若全被拒絕，將以孤狼出戰。', cands: G.cands.map(c => ({ c, ev: evalOpt(G, inviteSpec(G, c)) })) };
+}
+
+function teamPick(G, sel) {
+  const ids = sel === 'solo' ? [] : String(sel).split(',').filter(Boolean).map(Number).slice(0, 3);
+  G.nextFn = null;
+  if (!ids.length) {
+    pickBlock(G, '孤狼出戰', '一個人，一副民用承重架，自己扛');
+    say(G, '你把識別牌別在胸前，沒有走向任何一張桌子。米切爾遠遠看了你一眼，張了張嘴，又把話吞了回去。');
+  } else {
+    pickBlock(G, '發出邀請', ids.map(i => G.cands[i].name).join('、'));
+    for (const i of ids) {
+      const c = G.cands[i], spec = inviteSpec(G, c), ev = evalOpt(G, spec);
+      G.feed.push({ k: 'judge', name: spec.name, ev, label: resLabel(ev) });
+      if (ev.key === 'great' || ev.key === 'success') {
+        G.team.push(Object.assign({ alive: true }, c));
+        const nobleLine = c.origin === 'noble' ? '雖然一開始皺了眉，但你開出的條件讓他無法拒絕。' : '';
+        say(G, `${c.name}點了頭。${nobleLine}（${c.role}，${c.str}；缺點：${c.weak}）`);
+        if (ev.key === 'great') { G.syn = clamp(G.syn + 1, -2, 2); say(G, '這次邀請幾乎沒費力氣，雙方一拍即合。'); }
+      } else {
+        say(G, `${c.name}搖了搖頭。${c.origin === 'noble' ? '「我的隊伍不收來路不明的人。」' : c.trait === '高傲' ? '「我自己一個人就夠了。」' : '「抱歉，我已經有別的打算。」'}`);
+      }
+    }
+    if (!G.team.length) say(G, '三個人全拒絕了你。你收起識別牌，只能孤身出戰。');
+  }
+  G.rivals = G.cands.filter(c => !G.team.some(m => m.id === c.id));
+  makeEnemies(G);
+  flush(G);
+  bondNode(G);
+}
+
+function makeEnemies(G) {
+  const pool = G.rivals.slice();
+  const nobles = pool.filter(c => c.origin === 'noble'), others = G.shuffle(pool.filter(c => c.origin !== 'noble'));
+  const groups = [];
+  if (nobles.length) groups.push(nobles);
+  let cur = [];
+  for (const c of others) { cur.push(c); if (cur.length >= 3) { groups.push(cur); cur = []; } }
+  if (cur.length) groups.push(cur);
+  if (groups.length < 2 && groups[0] && groups[0].length >= 2) { const g = groups.pop(); groups.push(g.slice(0, 1)); groups.push(g.slice(1)); }
+  G.enemies = groups.map(g => {
+    const avg = g.reduce((s, c) => s + c.rating, 0) / g.length;
+    const fam = g.some(c => c.tier === 'family');
+    return { name: g[0].name.split('·')[0] + '隊', leader: g[0], members: g, size: g.length, alive: true, rating: avg, fam, diff: clamp(Math.round(avg) + 2 + (g.length >= 3 ? 1 : 0) + (fam ? 1 : 0), 6, 12) };
+  });
+}
+
+/* ---------- 磨合 ---------- */
+function bondNode(G) {
+  ch(G, '磨合時間');
+  const solo = !G.team.length;
+  const mate = G.team[0] ? G.team[0].name : '';
+  say(G, solo
+    ? '集結棚的鐵皮桌上攤著一張發電站簡圖，其他隊伍正在互相試探。你一個人坐在角落，把裝備一件件攤開。離登機還有一個小時，這一小時就是你全部的準備時間。'
+    : `集結棚的鐵皮桌上攤著發電站簡圖。${G.team.map(m => m.name).join('、')}圍在桌邊，各自打量對方的架子。離登機還有一個小時，彼此的默契只能在這一小時裡磨出來。`);
+  const opts = [
+    {
+      kind: 'conserv', name: solo ? '獨自勘察簡圖' : '全員摸底', line: solo ? '把簡圖背熟，逐條推演接敵路線' : '逐一確認傷勢、習慣與備援，劃分責任區',
+      attr: solo ? 'pro' : 'pol', cat: solo ? 'recon' : 'social', diff: 6, why: solo ? '紙上推演，風險低' : '交流成本低，只要彼此願意說', equip: [0, '紙上談兵，不計裝備'],
+      win: { t: solo ? '你把每一條走廊都在腦子裡走過一遍，連通風口的方向都記下了。' : `${mate}坦白說了自己的毛病，你也把「寧願自己扛」的毛病放在了桌面上。分工很快就定了。`, fx: solo ? { prep: 1 } : { syn: 1 } },
+      lose: { t: solo ? '你盯著簡圖看了很久，但越看越覺得每條路都有伏兵。時間流走了，腦子卻更亂了。' : '大家客氣得過頭，誰也沒把真正的問題說出口。分工看起來很整齊，實際上到處是空隙。', fx: solo ? {} : { syn: -1 } }
+    },
+    {
+      kind: 'iron', name: solo ? '加練負重衝刺' : '對抗演練', line: solo ? '全副裝備跑完三個障礙，逼自己適應重量' : '用模擬槍對打兩輪，直接練配合',
+      attr: 'proBody', cat: 'assault', diff: 8, why: '實戰演練，容錯低，但學得最快', equip: [0, '演練用模擬槍，不計裝備'], team: !solo,
+      win: { t: solo ? '三輪下來，肺像被燒穿，但關節的卡頓你找到了節奏。' : '兩輪打完，彼此的位置感已經貼上去了：誰補位、誰壓制，不用開口。', fx: solo ? { prep: 1 } : { syn: 1, prep: 1 } },
+      lose: { t: solo ? '你跑過頭了，膝蓋發酸。登機前，你得先把狀態拉回來。' : '演練變成了互相指責。有人踩了誰的腳，有人搶了誰的位置，登機前氣氛很僵。', fx: solo ? { carry: [{ why: '練過頭，肌肉痠痛', v: -1, cats: ['combat'] }] } : { syn: -1 } }
+    },
+    {
+      kind: 'trick', name: '向米切爾打聽', line: '趁他巡場時套情報，換他一個人情', attr: 'pol', cat: 'social', diff: 7, why: '場務學長不會明目張膽洩漏，但肯指方向', equip: [0, '情報交換，不計裝備'], mitch: true,
+      win: { t: '米切爾靠著鐵網，嘴上說「我什麼都沒說」，下巴卻朝配電塔的方向點了點：「噪音一響，天上的東西就會來。別打太大聲。」', fx: { prep: 1, mitch: 2, intel: { rules: true } } },
+      lose: { t: '米切爾看穿了你的用意，哼了一聲：「想走後門？回去背簡報。」他沒有生氣，只是少了點笑意。', fx: { mitch: -1 } }
+    }
+  ];
+  mkPlans(G, { title: '方案組合', hint: '磨合結果會轉為後續的情境修正（默契、準備）。', opts, free: eventFree(G, opts), next: examPlan1, tag: 'bond' });
+}
+
+/* ---------- 簡報與配置、落點 ---------- */
+function examPlan1(G) {
+  ch(G, '裝備配置與登機');
+  const E = G.exam = {
+    zone: null, droneZone: G.pick(['tower', 'mid', 'edge']), noise: 0, tower: 'free', holdMin: 0, near: false, far: false,
+    drones: 4, seniors: { pressure: true }, score: { elims: 0, tactics: 0, impression: 0 }, out: false, phase: 0, styles: { iron: 0, trick: 0, conserv: 0 }, seniorNames: G.shuffle(SENIOR_N).slice(0, 3), log: []
+  };
+  G.syn = clamp(G.syn, -2, 2);
+  const lone = !G.team.length;
+  const known = G.intel.rules;
+  say(G,
+    `你的架子是Ⅰ級民用承重架：機架與全軍一致，差在模組等級——${TIER_N[G.tier]}，槽位上限${SLOT_CAP[G.tier]}格。貴族考生的家族訂製模組領先一代，這個差距會在每一次判定裡攤開來算。`,
+    `簡報室的牆上投影出舊第九發電站：汽輪機廳、冷卻塔、鍋爐房、煤倉、輸電走廊、控制室，與頂上亮著紅點的配電塔。薇若妮卡站在投影前，把規則一條條念完：`,
+    `【規則】佔領配電塔並守住十分鐘的隊伍全員錄取；其餘考生由考官依評分決定是否破格。評分：淘汰敵隊×2、戰術評價、守塔分鐘、隊員存活。學長姐組是考官也是對手，優先壓制領先者與佔塔者；軍用無人機共4架，只依聲響行動：${known ? '噪音累積到6以上就會派機' : '交火與爆炸聲響會引來無人機（門檻未公開）'}。`,
+    `${G.intel.rules ? '米切爾私下透露的情報讓你對無人機的反應門檻有了底。' : '無人機的巡邏線與出動門檻，你還沒掌握。'}登機前，你有一次選擇配置、落點與準備方式的機會。`
+  );
+  const zones = lone ? ['tower', 'mid', 'edge'] : ['tower', 'ally', 'edge'];
+  const mk = (kind, name, line, zone, preset, prep, prepWhy, intel, win, lose) => {
+    const z = ZONES[zone];
+    const o = {
+      kind, name, line, attr: 'proBody', cat: 'mobility', diff: z.diff, why: `落點：${z.n}（${z.d}）`, team: false,
+      loadout: preset.mods.slice(), loadoutFresh: true, prep, prepWhy, situ: [], zone,
+      win: { t: win, fx: {} }, lose: { t: lose, fx: { carry: [{ why: '落地受損，裝備散落', v: -1, cats: ['combat'], left: 2 }], noise: 2 } },
+      pre: G => { G.exam.zone = zone; if (intel) applyFx(G, { intel }); },
+      after: (G, res) => landingAfter(G, res, zone)
+    };
+    if (zone === E.droneZone && !(intel && intel.routes) && !G.intel.routes) o.situ.push(['落點正好壓在無人機巡邏線上', -1]);
+    return o;
+  };
+  const opts = [
+    mk('conserv', '穩紮穩打組合', `配置B輕裝機動＋${lone ? '隱蔽邊緣區' : '隱蔽邊緣區'}＋研究地形`, 'edge', PRESETS.B, 1, '研究地形與巡邏線', { routes: true },
+      '空投倉在煤倉後方的陰影裡安靜落地。你避開了無人機的巡邏線，靠感測模組把周圍的熱源看得一清二楚。離配電塔很遠，但誰也沒發現你。', '倉門卡死了，你花了寶貴的時間才爬出來。邊緣地帶本該最安全，卻被摔得一身痠痛。'),
+    mk('iron', '強攻先手組合', '配置A全載突擊＋配電塔外圍＋不做額外準備', 'tower', PRESETS.A, 0, '', null,
+      '空投倉砸在配電塔外圍的混凝土地面，榴彈發射器的槽位在落地衝擊下紋絲不動。你比所有人更早看到塔頂的紅燈。', '落點太近了。倉體撞上裸露鋼筋，彈藥匣散落一地，你還沒起身，附近已有人開槍試探。'),
+    mk('trick', '借力奇襲組合', lone ? '配置C破點專精＋中央汽輪機廳＋向米切爾探口風' : '配置C破點專精＋隊友集結點＋向米切爾探口風', lone ? 'mid' : 'ally', PRESETS.C, 1, '向米切爾探到的口風', { rules: true },
+      lone ? '你落在汽輪機廳的大廳中央，巨型轉子像一尊廢棄的神像。各方動向盡收眼底，也有人看見了你。' : '同隊的空投倉在鍋爐房一帶接連落地，集結只花了三分鐘。你們帶著破點與防護，在發電站的心臟立住了腳跟。',
+      lone ? '落地時推進器沒吃住風，你滾進了一堆廢鐵裡，整個大廳都聽見了。' : '落點偏了，三人落在了不同的管道口，集結的時間被拖長了。')
+  ];
+  const freeBuild = (G, sel) => {
+    let mods;
+    if (sel.loadout === 'custom' && Array.isArray(sel.custom)) mods = sel.custom;
+    else mods = (PRESETS[sel.loadout] || PRESETS.B).mods;
+    mods = sanitizeMods(G, mods);
+    const zone = zones.includes(sel.zone) ? sel.zone : zones[0];
+    const prepK = sel.prep || 'none';
+    const z = ZONES[zone];
+    const prepMap = { none: [0, '', null], map: [1, '研究地形與巡邏線', { routes: true }], mitch: [1, '向米切爾探到的口風', { rules: true }], drone: [1, '推演與無人機周旋', { rules: true, dronePlan: true }] };
+    const [pv, pw, intel] = prepMap[prepK] || prepMap.none;
+    const o = {
+      kind: 'free', name: '自由組合', line: `${loadoutName(mods)}＋${z.n}＋${{ none: '不做額外準備', map: '研究地形', mitch: '向米切爾探口風', drone: '推演無人機周旋' }[prepK] || '不做額外準備'}`,
+      attr: 'proBody', cat: 'mobility', diff: z.diff, why: `落點：${z.n}（${z.d}）`, team: false, loadout: mods, loadoutFresh: true, prep: pv, prepWhy: pw, situ: [], zone,
+      win: { t: `空投倉在${z.n}落地。你對配置與落點的取捨，現在要開始兌現了。`, fx: {} },
+      lose: { t: '落地並不順利：倉體受損，裝備散落，附近有人聽見了動靜。', fx: { carry: [{ why: '落地受損，裝備散落', v: -1, cats: ['combat'], left: 2 }], noise: 2 } },
+      pre: G => { G.exam.zone = zone; if (intel) applyFx(G, { intel }); },
+      after: (G, res) => landingAfter(G, res, zone)
+    };
+    if (zone === E.droneZone && !G.intel.routes && !(intel && intel.routes)) o.situ.push(['落點正好壓在無人機巡邏線上', -1]);
+    return o;
+  };
+  const customSlots = SLOT_CAP[G.tier];
+  const free = {
+    custom: { cap: customSlots, mods: MOD_ORDER.slice() },
+    groups: [
+      { id: 'loadout', label: '裝備配置', choices: [...['A', 'B', 'C'].map(k => ({ id: k, label: `配置${k}「${PRESETS[k].name}」`, desc: `優：${PRESETS[k].pro}｜缺：${PRESETS[k].con}` })), { id: 'custom', label: '丁・自訂配置', desc: `在${customSlots}格槽位內自由組合`, custom: true }] },
+      { id: 'zone', label: '落點傾向', choices: zones.map(z => ({ id: z, label: ZONES[z].n, desc: ZONES[z].d + `（落地難度${ZONES[z].diff}）` })) },
+      { id: 'prep', label: '準備方式', choices: [
+        { id: 'none', label: '不做額外準備', desc: '省下時間，準備+0' },
+        { id: 'map', label: '研究地形與巡邏線', desc: '準備+1；掌握無人機巡邏線' },
+        { id: 'mitch', label: '向米切爾探口風', desc: '準備+1；掌握無人機出動門檻' },
+        { id: 'drone', label: '推演與無人機周旋', desc: '準備+1；掌握門檻，並演練過周旋' }
+      ] }
+    ],
+    build: freeBuild
+  };
+  mkPlans(G, { title: '裝備配置階段', hint: '每個方案同時決定：配置、落點、準備方式。點選後立刻判定落地。', opts, free, next: null, tag: 'plan1' });
+  G.node.examStart = true;
+  G.node.next = () => examNext(G);
+}
+
+function landingAfter(G, res, zone) {
+  const E = G.exam;
+  if (zone === 'tower') E.near = true;
+  if (zone === 'edge') E.far = true;
+  if (res.key === 'great') { G.carry.push({ why: '落點占優，先手位置', v: 1, cats: ['combat'], left: 2 }); }
+  if (res.key === 'bigfail') { consume(G, { gren: G.ammo.gren, smoke: 1 }); say(G, '空投倉的彈藥匣碎了一地，榴彈只剩零星幾枚。'); }
+  if (!res.succ && res.key === 'fail') consume(G, { smoke: 1 });
+  if (G.team.length && zone !== 'ally' && G.syn + teamAlive(G).reduce((s, m) => s + m.syn, 0) < 1) {
+    G.carry.push({ why: '落點分散，隊友集結延誤', v: -1, cats: ['combat'], left: 1 });
+    say(G, '同隊的落點散得太開，集結耗了不少時間，隊形一開始就不齊。');
+  }
+}
+
+/* ---------- 戰場態勢 ---------- */
+function battleBlock(G) {
+  const E = G.exam;
+  G.feed.push({
+    k: 'battle', data: {
+      team: [{ n: displayName(G) + '（你）', a: !E.out }, ...G.team.map(m => ({ n: m.name, a: m.alive }))],
+      noise: E.noise, noiseKnown: !!G.intel.rules, tower: E.tower, holdMin: E.holdMin,
+      enemies: G.enemies.map(e => ({ n: e.name, s: e.size, a: e.alive, d: e.diff })),
+      seniors: E.seniors.pressure ? '施壓中（目標：領先者與佔塔者）' : '已被牽制', drones: E.drones, droneKnown: !!G.intel.routes, droneZone: ZONES[E.droneZone].n,
+      score: E.score, zone: E.zone ? ZONES[E.zone].n : '-'
+    }
+  });
+}
+
+function examLose(G) {
+  const E = G.exam, al = teamAlive(G);
+  if (al.length) {
+    al.sort((a, b) => a.rating - b.rating);
+    const m = al[0]; m.alive = false;
+    say(G, `${m.name}的背心亮起紅燈，被判定淘汰。他退到場邊時回頭看了你一眼，沒說話。`);
+    return 'mate';
+  }
+  E.out = true;
+  say(G, '胸腔的衝擊感測背心發出長鳴，你被判定淘汰。你的考核在這一刻結束了。');
+  return 'out';
+}
+function examFail(G, res, retreat) {
+  const E = G.exam;
+  if (res.key === 'bigfail') { E.out = true; say(G, '一連串命中把你整個人撞出了掩體，胸腔感測器長鳴，你被判定淘汰。'); return; }
+  if (res.ev.close) { G.carry.push({ why: '被迫撤退，失去主動', v: -1, cats: ['combat'], left: 1 }); say(G, retreat); return; }
+  examLose(G);
+}
+
+function droneCheck(G) {
+  const E = G.exam;
+  if (E.noise < 6 || E.drones <= 0 || E.out) return;
+  say(G, `頭頂傳來螺旋槳的低鳴。噪音已累積到${E.noise}，一架軍用無人機沿著巡邏線轉了過來，掛載的模擬彈對準了聲源。`);
+  const spec = { name: '無人機介入', attr: 'pro', cat: 'survive', diff: 8, why: '無人機的模擬彈雨，對所有人一視同仁', situ: G.intel.dronePlan ? [['演練過與無人機周旋', 1]] : [], team: false };
+  const ev = evalOpt(G, spec);
+  G.feed.push({ k: 'judge', name: spec.name, ev, label: resLabel(ev) });
+  if (ev.key === 'great' || ev.key === 'success') {
+    E.drones--; if (ev.key === 'great') E.score.impression++;
+    say(G, '你利用掩體與煙塵拖住了它的鎖定，最後一發點射打壞了旋翼。它歪歪斜斜地墜進了廢料堆。');
+  } else if (ev.key === 'bigfail') {
+    E.out = true; say(G, '鎖定音響起時你還在移動。一整串模擬彈落下，你被判定淘汰。');
+  } else {
+    G.carry.push({ why: '被無人機壓制，傷了節奏', v: -1, cats: ['combat'], left: 1 }); consume(G, { smoke: 1 });
+    say(G, '你狼狽地滾進掩體，煙幕彈用掉了一枚才擺脫鎖定。');
+  }
+  E.noise = 3;
+}
+
+function examNext(G) {
+  const E = G.exam;
+  flush(G);
+  droneCheck(G);
+  flush(G);
+  if (E.out) return examFinish(G);
+  const ph = E.phase++;
+  if (ph === 0) return contestNode(G);
+  if (ph === 1) return seniorsNode(G);
+  if (ph === 2) return captureNode(G);
+  if (ph === 3) return holdNode(G);
+  return examFinish(G);
+}
+
+function enemyFor(G) {
+  const alive = G.enemies.filter(e => e.alive).sort((a, b) => a.diff - b.diff);
+  if (!alive.length) return null;
+  const z = G.exam.zone;
+  return z === 'tower' ? alive[alive.length - 1] : z === 'edge' ? alive[0] : alive[Math.floor(alive.length / 2)];
+}
+function styleCount(G, k) { G.exam.styles[k] = (G.exam.styles[k] || 0) + 1; }
+
+/* ---------- 第二階段：地形爭奪 ---------- */
+function contestNode(G) {
+  const E = G.exam, e = enemyFor(G);
+  ch(G, '地形爭奪');
+  if (!e) { say(G, '場內暫時沒有其他隊伍的蹤跡。你得到了喘息，也失去了摸清對手的機會。'); return examNext(G); }
+  E.cur = e;
+  say(G, `發電站內部的聲響被混凝土吞沒了一半。${e.leader.name}（${TIER_N[e.leader.tier]}・${e.leader.role}）帶著${e.size}人的${e.name}，正沿著輸電走廊向你的方位推進。${e.fam ? '他們肩甲上有家徽烙印，訂製模組的光澤和你的民用架子形成了刺眼的對比。' : ''}`);
+  battleBlock(G);
+  const mk = o => Object.assign({ team: true, usesExam: true }, o);
+  const opts = [
+    mk({ kind: 'conserv', name: '設伏守株', line: `選一處通道口，讓${e.name}自己撞上來`, attr: 'pro', cat: 'hold', diff: e.diff - 1, why: `${e.name}戰力評估${e.diff - 1}（設伏有利，降低1）`, noise: 1,
+      win: { t: `你們在走廊盡頭壓住了射界。${e.name}的先頭兵剛探頭就被點中，陣型瞬間散了。`, fx: {} }, lose: { t: `${e.name}沒有踏進你的射界，反而繞了一圈，從側面掀了你的掩體。`, fx: {} },
+      after: (G, r) => contestAfter(G, r, e, 'conserv') }),
+    mk({ kind: 'iron', name: '正面清障推進', line: '榴彈清掩體，步槍壓上去', attr: 'proBody', cat: 'assault', diff: e.diff + 1, why: `${e.name}戰力評估${e.diff + 1}（主動進攻，提高1）`, ammo: { gren: 1 }, noise: 3,
+      win: { t: `一發榴彈砸進掩體後面，煙塵裡你切了進去，三槍點掉兩個，${e.name}的陣型瞬間垮了。`, fx: {} }, lose: { t: `榴彈炸在了空處。${e.name}的反擊把你壓回掩體，你的肩甲被打得叮噹作響。`, fx: {} },
+      after: (G, r) => contestAfter(G, r, e, 'iron') }),
+    mk({ kind: 'trick', name: '引無人機咬敵隊', line: `製造聲響，把巡邏機引向${e.name}的位置`, attr: 'proPol', cat: 'recon', diff: e.diff + (G.intel.routes ? -1 : 1), why: `${e.name}戰力評估${e.diff}，${G.intel.routes ? '已掌握巡邏線，降低1' : '未掌握巡邏線，提高1'}`, noise: 2,
+      situ: G.intel.dronePlan ? [['演練過與無人機周旋', 1]] : [], need: G => G.exam.drones > 0 ? null : '無人機已全數被擊落',
+      win: { t: `你扔出的通訊干擾器在走廊另一頭炸出一陣雜訊。巡邏機調轉方向，${e.name}的人還沒反應過來，就被模擬彈掃成了一片紅燈。`, fx: {} }, lose: { t: `聲響引來的無人機判斷錯了方向，它在你頭頂盤旋了兩圈，把你的位置廣播給了所有人。`, fx: {} },
+      after: (G, r) => contestAfter(G, r, e, 'trick') })
+  ];
+  mkPlans(G, { title: '方案組合', hint: '噪音≥6時，軍用無人機會在本階段結束後介入。', opts, free: phaseFree(G, opts, { exam: true }), next: () => examNext(G), tag: 'contest' });
+}
+function contestAfter(G, res, e, style) {
+  const E = G.exam;
+  styleCount(G, style);
+  if (res.succ) {
+    e.alive = false; E.score.elims++;
+    if (style === 'trick') E.score.tactics += 2;
+    if (res.key === 'great') { E.score.impression++; G.ammo.gren += (G.loadout.includes('ugl') ? 1 : 0); say(G, '你還順手繳了對方一枚榴彈。'); }
+    say(G, `${e.name}被判定全隊淘汰，場上少了一支敵隊。`);
+  } else examFail(G, res, `你判斷這一波打不下來，帶著隊伍撤出了${e.name}的射界。${e.name}仍在場內，而且知道你在哪。`);
+}
+
+/* ---------- 第三階段：學長姐入場 ---------- */
+function seniorsNode(G) {
+  const E = G.exam, lead = E.score.elims >= 1;
+  const others = G.enemies.filter(e => e.alive);
+  ch(G, '學長姐入場');
+  const sn = E.seniorNames;
+  say(G, `廣播裡傳來短促的蜂鳴：學長姐組入場。三名制式模組的學長姐從控制室方向壓了過來，領頭的是三年級的${sn[0]}。${lead ? '你的隊伍是目前淘汰數領先的，他們的目標很明確。' : '你的隊伍目前沒有突出戰績，他們的視線在你身上停留得很短。'}`,
+    `看台高處，薇若妮卡抱著手臂，目光掠過戰場，筆尖在名冊上輕輕敲了兩下。`);
+  battleBlock(G);
+  const base = 11 + (lead ? 1 : -1);
+  const mk = o => Object.assign({ team: true }, o);
+  const opts = [
+    mk({ kind: 'conserv', name: '避其鋒、繞行', line: '放棄正面，沿管線外側繞開學長姐', attr: 'pol', cat: 'recon', diff: base - 3, why: `學長姐壓制強度${base}（繞行判斷，降低3）`, noise: 0,
+      win: { t: '你們貼著管線外側安靜地繞了過去。學長姐撲了個空，只留下一條清晰的包圍線給下一支隊伍。', fx: {} }, lose: { t: '繞行被他們的偵察手識破，你們被迫在管線間縮成一團。', fx: {} },
+      after: (G, r) => { styleCount(G, 'conserv'); if (r.succ) E.score.tactics += 1; else examFail(G, r, '你們被壓回了管線縫隙裡，失去了主動。'); } }),
+    mk({ kind: 'iron', name: '正面接戰學長姐', line: '用破點與壓制和學長姐硬碰硬', attr: 'proBody', cat: 'assault', diff: base + 1, why: `學長姐壓制強度${base}（硬碰硬，提高1）`, ammo: { gren: 1 }, noise: 3,
+      win: { t: '你們在控制室門口和學長姐對峙了整整四十秒，最後你一發榴彈封死了他們的側翼，三年級的學長舉起手示意停火。', fx: {} }, lose: { t: '學長姐的配合太老練，你們的前鋒在三十秒內被連續點中。', fx: {} },
+      after: (G, r) => { styleCount(G, 'iron'); if (r.succ) { E.score.impression += 2; E.seniors.pressure = false; } else examFail(G, r, '你們咬著牙退出了控制室，肩甲上全是模擬彈的漆點。'); } }),
+    mk({ kind: 'trick', name: '誘導互撞', line: '把學長姐引向另一支敵隊，自己抄後路', attr: 'proPol', cat: 'recon', diff: base - 2, why: `學長姐壓制強度${base}（借力使力，降低2）`, noise: 2,
+      need: G => (G.enemies.some(e => e.alive) || G.exam.drones > 0) ? null : '場內已無其他隊伍或無人機可借用',
+      situ: G.intel.dronePlan ? [['演練過與無人機周旋', 1]] : [],
+      win: { t: '你用干擾器在另一側放了一段假通訊。學長姐毫不猶豫地壓向聲源，正撞上另一支隊伍。你們趁亂摸到了配電塔的側面。', fx: {} }, lose: { t: '假通訊被識破了。三年級的學長朝你們這邊抬了抬下巴，那是「我看見你了」的意思。', fx: {} },
+      after: (G, r) => { styleCount(G, 'trick'); if (r.succ) { E.score.tactics += 2; E.seniors.pressure = false; const o = G.enemies.find(e => e.alive); if (o) { o.alive = false; say(G, `${o.name}被學長姐吞掉了，沒能留下任何功勞。`); } G.carry.push({ why: '學長姐被牽制，出現搶塔窗口', v: 1, cats: ['combat'], left: 1 }); } else { applyFx(G, { noise: 2 }); examFail(G, r, '你們悄悄撤了出去，沒能把局面攪渾。'); } } })
+  ];
+  mkPlans(G, { title: '方案組合', hint: '學長姐同時是考官，行動會被評分並影響推薦資格。', opts, free: phaseFree(G, opts, { exam: true }), next: () => examNext(G), tag: 'seniors' });
+}
+
+/* ---------- 第四階段：佔領配電塔 ---------- */
+function captureNode(G) {
+  const E = G.exam;
+  ch(G, '配電塔爭奪');
+  say(G, `配電塔的鋼梯一路向上，頂端的控制盤亮著紅燈。${E.near ? '你離它只剩幾十步，起手最快。' : E.far ? '你從邊緣區一路摸過來，已經比別人慢了一拍。' : '距離不遠不近，靠的是這一手的處理。'}遠處傳來槍聲，其他方向的隊伍也在向這裡收攏。`);
+  battleBlock(G);
+  const base = 9 + (E.near ? -1 : 0) + (E.far ? 1 : 0);
+  const why = `佔塔基準9${E.near ? '，近塔-1' : ''}${E.far ? '，遠塔+1' : ''}`;
+  const mk = o => Object.assign({ team: true }, o);
+  const opts = [
+    mk({ kind: 'conserv', name: '分段滲透', line: '用感測與掩體，分三段摸上塔頂', attr: 'pro', cat: 'recon', diff: base - 1, why: why + '，分段推進-1', noise: 0,
+      win: { t: '你們每一段都先讓感測掃過，再讓人頭低著上。最後一格鋼梯踏上去時，塔頂控制盤的燈由紅轉綠。', fx: {} }, lose: { t: '第二段鋼梯被別隊的視線咬住了，你們被迫停在半空。', fx: {} },
+      after: (G, r) => captureAfter(G, r, 'conserv') }),
+    mk({ kind: 'iron', name: '破點強攻', line: '榴彈與破門工具強行開路，直接佔塔', attr: 'proBody', cat: 'breach', diff: base + 1, why: why + '，強攻+1', ammo: { gren: 2 }, noise: 3,
+      win: { t: '兩發榴彈砸開了塔基的防護門，你踏著碎渣上了塔。這一次，連呼吸聲都在發電站裡回蕩。', fx: {} }, lose: { t: '榴彈砸在了加固的鋼板上，聲響大得足夠讓所有人轉過頭來。', fx: {} },
+      after: (G, r) => captureAfter(G, r, 'iron') }),
+    mk({ kind: 'trick', name: '煙幕強佔', line: '用煙幕遮蔽塔基，趁亂一口氣衝上去', attr: 'proBody', cat: 'mobility', diff: base, why: why + '，煙幕掩護0', ammo: { smoke: 1 }, noise: 1,
+      win: { t: '煙幕沿著塔基鋪開，你踩著白霧衝了上去。敵人的槍聲都打在了濃霧裡。', fx: {} }, lose: { t: '煙幕被風吹散了，你在塔基暴露了足足三秒。', fx: {} },
+      after: (G, r) => captureAfter(G, r, 'trick') })
+  ];
+  mkPlans(G, { title: '方案組合', hint: '佔領後必須守滿十分鐘；佔不下來則需在守塔階段先清場。', opts, free: phaseFree(G, opts, { exam: true }), next: () => examNext(G), tag: 'capture' });
+}
+function captureAfter(G, res, style) {
+  const E = G.exam;
+  styleCount(G, style);
+  if (res.succ) { E.tower = 'mine'; say(G, '配電塔的控制盤轉綠：佔領成功，十分鐘的倒數開始了。'); }
+  else { E.tower = 'contested'; examFail(G, res, '你沒能一口氣拿下塔頂，塔仍在爭奪中。'); }
+}
+
+/* ---------- 第五階段：守塔十分鐘 ---------- */
+function holdNode(G) {
+  const E = G.exam, alive = G.enemies.filter(e => e.alive).length;
+  ch(G, '十分鐘');
+  const parts = [`基準9`, alive ? `餘敵${alive}支+${alive}` : '', E.seniors.pressure ? '學長姐仍在施壓+1' : '', E.tower === 'contested' ? '塔仍在爭奪+2' : '', E.noise >= 6 ? '噪音過高+1' : ''].filter(Boolean);
+  const base = 9 + alive + (E.seniors.pressure ? 1 : 0) + (E.tower === 'contested' ? 2 : 0) + (E.noise >= 6 ? 1 : 0);
+  say(G, `倒數的數字亮在塔頂的控制盤上。十分鐘看起來很短，在這一刻卻長得像一個冬季。${alive ? `場內還有${alive}支隊伍在盯著這座塔。` : '場內的敵隊都已被清掉，但沒有人敢說這是結束。'}${E.seniors.pressure ? '學長姐的陣型也開始向配電塔收攏。' : ''}`);
+  battleBlock(G);
+  const mk = o => Object.assign({ team: true }, o);
+  const opts = [
+    mk({ kind: 'conserv', name: '縱深防禦', line: '把防護與掩體疊在樓梯口，層層消耗來襲者', attr: 'pro', cat: 'hold', diff: base - 1, why: `守塔難度：${parts.join('，')}；縱深防禦-1`, noise: 1,
+      win: { t: '你們把每個梯口都變成了射擊口。倒數歸零的那一刻，整座塔還在你們手裡。', fx: {} }, lose: { t: '縱深被一點撕開，防線從內部開始崩。', fx: {} },
+      after: (G, r) => holdAfter(G, r, 'conserv') }),
+    mk({ kind: 'iron', name: '反擊清掃', line: '主動出擊打掉逼近的隊伍，不讓他們靠近塔基', attr: 'proBody', cat: 'assault', diff: base + 1, why: `守塔難度：${parts.join('，')}；主動出擊+1`, ammo: { gren: 1 }, noise: 3,
+      win: { t: '你衝出塔基，把逼近的敵隊在廣場上擊潰。倒數結束時，塔下一片安靜。', fx: {} }, lose: { t: '你衝得太遠，塔基失去了掩護，被人從背後鑽了進去。', fx: {} },
+      after: (G, r) => holdAfter(G, r, 'iron') }),
+    mk({ kind: 'trick', name: '預設陷阱與煙幕', line: '提前在入口布置假目標與煙幕，讓敵人互相消耗', attr: 'proPol', cat: 'hold', diff: base, why: `守塔難度：${parts.join('，')}`, ammo: { smoke: 1 }, noise: 1,
+      win: { t: '敵人被假熱源和煙幕引得互相開火，等他們發現上當時，倒數已經歸零。', fx: {} }, lose: { t: '陷阱被識破了。他們繞開假目標，直接摸向塔頂。', fx: {} },
+      after: (G, r) => holdAfter(G, r, 'trick') })
+  ];
+  mkPlans(G, { title: '方案組合', hint: '守滿十分鐘＝全員錄取。守不滿，由考官依評分決定。', opts, free: phaseFree(G, opts, { exam: true }), next: () => examNext(G), tag: 'hold' });
+}
+function holdAfter(G, res, style) {
+  const E = G.exam;
+  styleCount(G, style);
+  if (res.succ) { E.holdMin = 10; say(G, '倒數歸零的長鳴響徹了整座發電站——十分鐘，守住了。'); return; }
+  if (res.key === 'bigfail') { E.holdMin = 2; E.out = true; say(G, '防線在第二分鐘崩了，你被連人帶塔掀了下去。'); return; }
+  if (res.ev.close) { E.holdMin = 7; say(G, '你撐到第七分鐘，塔被敵人奪走。差了三分鐘。'); return; }
+  E.holdMin = 4; examLose(G); say(G, '防線在第四分鐘崩潰，塔易主。');
+}
+
+/* ---------- 結算 ---------- */
+function examFinish(G) {
+  const E = G.exam;
+  const al = teamAlive(G).length;
+  const sc = E.score;
+  const score = sc.elims * 2 + sc.tactics + sc.impression + al + Math.floor(E.holdMin / 2);
+  const rows = [['淘汰敵隊×2', sc.elims * 2], ['戰術評價', sc.tactics], ['考官印象', sc.impression], ['隊員存活', al], ['守塔分鐘÷2', Math.floor(E.holdMin / 2)]];
+  ch(G, '考核結算');
+  const passFull = E.holdMin >= 10;
+  const merit = !passFull && score >= 9;
+  const res = passFull ? 'hold' : merit ? 'merit' : 'reserve';
+  G.tags.examResult = res;
+  G.feed.push({ k: 'score', rows, total: score, thr: 9, res });
+  const sz = G.team.length + 1;
+  const credit = sz === 1 ? 1 : sz >= 4 ? -1 : 0;
+  say(G, passFull
+    ? '運輸機的引擎聲從遠處壓下來，擴音器宣布：「第九發電站考核結束。配電塔守住十分鐘的隊伍，全員錄取。」'
+    : merit
+      ? '運輸機的引擎聲壓下來。擴音器宣布：「守塔失敗。考官評分已達破格線，以下考生破格錄取。」'
+      : '運輸機的引擎聲壓下來。擴音器宣布：「守塔失敗，評分未達破格線。」');
+  if (res === 'hold') { applyFx(G, { rep: 2 + (credit > 0 ? 1 : credit < 0 ? -1 : 0), merit: 3, mitch: 2, why: { rep: sz === 1 ? '孤狼獨享功勞' : sz >= 4 ? '功勞與隊友分攤' : '守塔成功' } }, '入學考核'); }
+  else if (res === 'merit') { applyFx(G, { rep: 1 + (credit > 0 ? 1 : 0), merit: 2, mitch: 2 }, '入學考核（破格）'); }
+  else { applyFx(G, { rep: -1, merit: 1, mitch: 1, tags: { reserve: true }, why: { rep: '以備取身分入學，被側目' } }, '入學考核（備取）'); }
+  // 薇若妮卡的印象
+  const st = E.styles, dom = ['iron', 'trick', 'conserv'].sort((a, b) => st[b] - st[a])[0];
+  const total = st.iron + st.trick + st.conserv;
+  if (total > 0) {
+    if (dom === 'iron') { applyFx(G, { aff: 2, why: { aff: '會長覺得你有膽識，也覺得你太莽' } }); say(G, '薇若妮卡在名冊上寫下了評語。你後來才知道那一欄寫的是「過於強硬，但值得磨」。'); }
+    else if (dom === 'trick') { applyFx(G, { aff: 2, trust: 1, why: { aff: '會長欣賞你的腹黑', trust: '會長認為你的算計有分寸' } }); say(G, '薇若妮卡看到你誘敵的戰術時，嘴角彎了一下，很快被端莊的表情蓋住。「有意思。」'); }
+    else { applyFx(G, { trust: 2, why: { trust: '會長認可你的穩健' } }); say(G, '薇若妮卡看完你的戰績，只淡淡說了一句：「穩得有點無趣，但沒有人會死在你手上。」'); }
+  }
+  // 結果與隊友
+  const adm = [];
+  for (const m of G.team) if (res === 'hold' || (m.alive && res === 'merit')) adm.push(m);
+  G.allies = adm;
+  const failed = G.team.filter(m => !adm.includes(m));
+  const lines = [];
+  if (adm.length) lines.push(`同隊的${adm.map(m => m.name).join('、')}一起通過，成了你的同梯戰友。`);
+  if (failed.length) lines.push(`${failed.map(m => m.name).join('、')}落榜了，各自走上了不同的路。`);
+  lines.push('本屆邊境志願役十二人，只有四人過了這道門。');
+  say(G, lines.join(''));
+  if (res === 'reserve') say(G, '備取通知在公告欄最底下一行：你以「備取生」的身分入學，沒有人替你歡呼，也沒有人給你好臉色。米切爾遠遠站在門口，朝你比了個大拇指，然後被教官瞪了一眼。');
+  else say(G, '你走出考場時，米切爾一手搭上你的肩膀，嘴裡還在罵：「你打得真難看！」但他的眼睛是亮的。');
+  logLife(G, res === 'hold' ? '守塔十分鐘，全隊錄取防大附高。' : res === 'merit' ? '破格錄取防大附高。' : '以備取生身分進入防大附高。');
+  flush(G);
+  G.examRes = { res, score };
+  G.exam = null;
+  setLoadout(G, PRESETS.B.mods, true);
+  goNext(G);
+}
+/* ===== 大型行動（演習、戰役）：配置→接敵→決勝 ===== */
+function opTeam(G) {
+  const team = [];
+  for (const a of G.allies) if (!a.gone) team.push(Object.assign({}, a, { alive: true }));
+  if (G.rank >= 1 && G.mitch.status === 'ok' && G.mitch.bond >= 30 && G.tags.mitchReady) team.push({ id: 'mitch', name: '米切爾', rating: 7, syn: 1, alive: true, mitch: true, role: '機槍手' });
+  G.team = team;
+}
+function ctxOf(op) { return { en: op.enemy, pl: op.place }; }
+
+const PHASES = {
+  assault: (c, b) => [
+    { kind: 'conserv', name: '外圍偵察·逐點推進', line: `先摸清${c.en}的火力點，再一個一個拔`, attr: 'pro', cat: 'recon', dd: -1, why: '偵察推進，降低1',
+      win: `你們把${c.pl}的外圍摸了個透，火力點被一個個標在地圖上，${c.en}的第一道防線不知不覺間鬆了。`, lose: `偵察花的時間太久，${c.en}已經調整好了防線。` },
+    { kind: 'iron', name: '正面突擊', line: '榴彈清障，主力直接壓上去', attr: 'proBody', cat: 'assault', dd: 1, ammo: { gren: 1 }, why: '正面突擊，提高1',
+      win: `榴彈砸開了${c.pl}的第一道掩體，你踩著煙塵切進去，${c.en}的火力在三秒內失去了組織。`, lose: `${c.en}的交叉火力把你們死死壓在了掩體後，榴彈只炸出一片塵土。` },
+    { kind: 'trick', name: '佯動牽制·側翼切入', line: '一組佯攻吸引火力，主力從側翼摸進去', attr: 'proPol', cat: 'mobility', dd: 0, ammo: { smoke: 1 }, why: '佯動牽制，不增減',
+      win: `佯攻的槍聲吸走了${c.en}的視線，煙幕鋪開，你們從${c.pl}的側翼溜了進去。`, lose: `佯動被識破，${c.en}反向包夾，你們差點被切成兩段。` }
+  ],
+  breach: (c, b) => [
+    { kind: 'conserv', name: '分段爆破·逐層清掃', line: '一層層炸、一層層清，不留死角', attr: 'pro', cat: 'breach', dd: -1, ammo: { frag: 1 }, why: '分段爆破，降低1',
+      win: `你們一層層推進${c.pl}，每一道門都被爆破組炸開、清掃，沒有留下任何死角。`, lose: `爆破的節奏被打亂，${c.en}趁隙從樓上投下反制，你們不得不退回了樓梯。` },
+    { kind: 'iron', name: '強行破門突入', line: '破門工具＋榴彈，主力直入核心', attr: 'proBody', cat: 'breach', dd: 1, ammo: { gren: 2 }, why: '強行突入，提高1',
+      win: `破門工具撬開了${c.pl}的核心門，一排榴彈在走廊裡炸開，${c.en}的指揮節點瞬間失聯。`, lose: `破門的聲響太大，${c.en}早有準備，門後是一排架好的槍。` },
+    { kind: 'trick', name: '切斷通訊·分割包圍', line: '用干擾器切斷聯絡，讓他們各自為戰', attr: 'proPol', cat: 'recon', dd: 0, why: '干擾分割，不增減',
+      win: `干擾器讓${c.en}的內線通訊陷入一片雜音。他們各自為戰，被你們一小股一小股吃掉。`, lose: `干擾器被他們的備用頻道繞過了，你們反而暴露了位置。` }
+  ],
+  defend: (c, b) => [
+    { kind: 'conserv', name: '縱深防禦', line: '防護與掩體疊起來，層層消耗', attr: 'pro', cat: 'hold', dd: -1, why: '縱深防禦，降低1',
+      win: `你們把${c.pl}的每個入口都變成射擊口。${c.en}衝了三輪，每一輪都被打回了起點。`, lose: `縱深被一點撕開，${c.en}的突擊組沿著那條縫隙鑽進了腹地。` },
+    { kind: 'iron', name: '主動反擊', line: '趁他們隊形未穩，直接衝出去打', attr: 'proBody', cat: 'assault', dd: 1, ammo: { gren: 1 }, why: '主動反擊，提高1',
+      win: `你一個衝鋒，把${c.en}的隊形硬生生撕成了兩半，剩下的只能潰逃。`, lose: `你衝得太深，陣線拉得過長，${c.en}從缺口湧了進來。` },
+    { kind: 'trick', name: '佈陷誘敵', line: '留下假目標，讓敵人自己踩進去', attr: 'proPol', cat: 'hold', dd: 0, ammo: { smoke: 1 }, why: '佈陷誘敵，不增減',
+      win: `假熱源和煙幕引得${c.en}互相開火，等他們發現上當，你們已經收攏了陣線。`, lose: `陷阱被識破，${c.en}繞開假目標直撲你的指揮點。` }
+  ],
+  withdraw: (c, b) => [
+    { kind: 'conserv', name: '借地形隱蔽撤離', line: '放棄目標，沿管線與廢墟悄悄撤', attr: 'pro', cat: 'recon', dd: -1, why: '隱蔽撤離，降低1',
+      win: `你們貼著廢墟的陰影一寸一寸退出了${c.pl}，${c.en}撲了個空。`, lose: `撤離的路線被${c.en}預判，你們在半路被迫還擊。` },
+    { kind: 'iron', name: '殿後阻擊', line: '自己留下殿後，替隊伍爭取時間', attr: 'proBody', cat: 'survive', dd: 1, ammo: { gren: 1 }, why: '殿後阻擊，提高1',
+      win: `你在${c.pl}的出口留下了一道火網。${c.en}被你一個人釘在原地二十分鐘，隊伍毫髮無傷地撤了出去。`, lose: `殿後的火網被${c.en}的突擊組撕開，你的肩甲上多了好幾道漆點。` },
+    { kind: 'trick', name: '誘敵入雷區', line: '佈設假撤離路線，讓追兵踩進空場', attr: 'proPol', cat: 'mobility', dd: 0, ammo: { smoke: 1 }, why: '誘敵入雷區，不增減',
+      win: `追兵追著你留下的假撤離痕跡衝進了${c.pl}的空場，模擬雷區把他們炸得七零八落。`, lose: `假撤離痕跡被看穿，${c.en}切斷了你的退路。` }
+  ]
+};
+
+function opPhaseOpts(G, op, phaseType, offset) {
+  const c = ctxOf(op);
+  return PHASES[phaseType](c, op).map(s => {
+    const o = {
+      kind: s.kind, name: s.name, line: s.line, attr: s.attr, cat: s.cat, diff: op.base + offset + s.dd, why: `${op.enemy}戰力基準${op.base + offset}，${s.why}`,
+      team: true, ammo: s.ammo, situ: [],
+      win: { t: s.win, fx: {} }, lose: { t: s.lose, fx: {} },
+      after: (G, r) => opAfter(G, r, s.kind)
+    };
+    return o;
+  });
+}
+function opAfter(G, res, style) {
+  const op = G.op;
+  op.score += res.key === 'great' ? 2 : res.succ ? 1 : res.key === 'bigfail' ? -1 : 0;
+  op.styles[style] = (op.styles[style] || 0) + 1;
+  if (res.succ) return;
+  if (res.key === 'bigfail') { opLoseMate(G, true); return; }
+  if (res.ev.close) { G.carry.push({ why: '被迫後撤，失去主動', v: -1, cats: ['combat'], left: 1 }); say(G, '你判斷再拖下去只會更糟，下令後撤。對方的火力追了你們一路。'); return; }
+  opLoseMate(G, false);
+}
+function opLoseMate(G, severe) {
+  const al = teamAlive(G).filter(m => !m.mitch).sort((a, b) => a.rating - b.rating);
+  if (al.length) {
+    const m = al[0]; m.alive = false;
+    const ally = G.allies.find(a => a.id === m.id);
+    if (ally) ally.gone = true;
+    if (severe) { ally && (ally.dead = true); say(G, `${m.name}沒能回來。他的識別牌是你親手從廢墟裡撿出來的，上面還沾著機油。`); applyFx(G, { fam: 0, log: `同梯戰友${m.name}在${G.op.title}中陣亡。` }); G.deltas.push({ label: '戰友', d: 0, reason: '', text: `${m.name}陣亡` }); }
+    else { say(G, `${m.name}在這一波中重傷，被後送醫療站，從此退出了現役。`); G.deltas.push({ label: '戰友', d: 0, reason: '', text: `${m.name}重傷退役` }); logLife(G, `同梯戰友${m.name}在${G.op.title}中重傷退役。`); }
+    return;
+  }
+  if (severe && G.mitch.status === 'ok' && G.tags.mitchReady && G.r() < 0.5) {
+    G.mitch.status = 'injured'; G.tags.mitchHurt = true;
+    say(G, '無線電裡傳來米切爾的悶哼，然後是一片雜訊。你在煙塵裡找到他時，他的左臂已經不在了，卻還在罵你「怎麼這麼慢」。');
+    G.deltas.push({ label: '戰友', d: 0, reason: '', text: '米切爾失去左臂，改裝軍用義肢後退出前線' });
+    logLife(G, '米切爾在戰役中失去左臂，退出前線。');
+  }
+}
+
+function startOp(G, id) {
+  const op = OPS[id];
+  opTeam(G);
+  G.op = { id, title: op.title, score: 0, styles: {}, phase: 0 };
+  ch(G, op.title);
+  say(G, ...op.intro(G));
+  say(G, `【任務】${op.mission}　【敵情】${op.enemy}，戰力基準${op.base}。你目前的機架是${TIER_N[G.tier]}，槽位上限${SLOT_CAP[G.tier]}格。${G.team.length ? `隨行：${G.team.map(m => m.name).join('、')}。` : '你單獨行動。'}`);
+  const first = opPhaseOpts(G, op, op.phases[0], 0);
+  const presets = ['B', 'A', 'C'];
+  const opts = first.map((o, i) => {
+    const P = PRESETS[presets[i]];
+    o.loadout = P.mods.slice(); o.loadoutFresh = true;
+    o.name = ['穩紮穩打組合', '強攻先手組合', '借力奇襲組合'][i];
+    o.line = `配置${P.id}「${P.name}」＋${first[i].name}`;
+    if (i === 2) o.prep = 1, o.prepWhy = '事前串聯情報與火力支援';
+    return o;
+  });
+  const cap = SLOT_CAP[G.tier];
+  const free = {
+    custom: { cap, mods: MOD_ORDER.slice() },
+    groups: [
+      { id: 'loadout', label: '裝備配置', choices: [...['A', 'B', 'C'].map(k => ({ id: k, label: `配置${k}「${PRESETS[k].name}」`, desc: `優：${PRESETS[k].pro}｜缺：${PRESETS[k].con}` })), { id: 'custom', label: '丁・自訂配置', desc: `在${cap}格槽位內自由組合`, custom: true }] },
+      { id: 'style', label: '接敵方式', choices: first.map(o => ({ id: o.kind, label: o.name, desc: o.line })) },
+      { id: 'prep', label: '準備方式', choices: [{ id: 'none', label: '直接出發', desc: '準備+0' }, { id: 'scout', label: '先遣偵察', desc: '準備+1；多耗一季光陰' }] }
+    ],
+    build(G, sel) {
+      const b = first.find(x => x.kind === (sel.style || 'conserv')) || first[0];
+      const mods = sel.loadout === 'custom' && Array.isArray(sel.custom) ? sanitizeMods(G, sel.custom) : (PRESETS[sel.loadout] || PRESETS.B).mods.slice();
+      const o = Object.assign({}, b, { loadout: mods, loadoutFresh: true, situ: [] });
+      o.name = '自由組合'; o.line = `${loadoutName(mods)}＋${b.name}${sel.prep === 'scout' ? '＋先遣偵察' : ''}`;
+      if (sel.prep === 'scout') { o.prep = 1; o.prepWhy = '先遣偵察'; o.extraT = 1; } else { o.prep = 0; }
+      return o;
+    }
+  };
+  mkPlans(G, { title: '裝備配置階段', hint: '每個方案同時決定配置與接敵方式。點選後立即判定第一階段。', opts, free, next: () => opPhase2(G), tag: 'op:' + id });
+}
+function opPhase2(G) {
+  const op = OPS[G.op.id];
+  flush(G);
+  ch(G, op.title + '・決勝');
+  const prog = G.op.score >= 2 ? '第一階段打得漂亮，主動權在你手裡。' : G.op.score === 1 ? '第一階段勉強站穩，局勢仍在拉鋸。' : '第一階段打得很苦，你們處在被動。';
+  say(G, `${prog}${op.decisive(G)}`);
+  const opts = opPhaseOpts(G, op, op.phases[1], 1);
+  mkPlans(G, { title: '方案組合', hint: '決勝階段可以調整裝備配置（換裝耗時，情境−1）。', opts, free: phaseFree(G, opts), next: () => opFinish(G), tag: 'op2:' + G.op.id });
+}
+function opFinish(G) {
+  const op = OPS[G.op.id], s = G.op.score;
+  const r = s >= 3 ? 'victory' : s === 2 ? 'win' : s === 1 ? 'draw' : 'defeat';
+  const m = op.merit;
+  ch(G, op.title + '・戰果');
+  const txt = {
+    victory: op.after.victory, win: op.after.win, draw: op.after.draw, defeat: op.after.defeat
+  }[r];
+  say(G, txt(G));
+  if (r === 'victory') applyFx(G, { merit: m + 2, rep: 1, pro: 1, why: { pro: '實戰淬鍊' } }, op.title);
+  else if (r === 'win') applyFx(G, { merit: m, [G.stats.body < G.stats.pro ? 'body' : 'pro']: 1, why: { pro: '實戰淬鍊', body: '實戰淬鍊' } }, op.title);
+  else if (r === 'draw') applyFx(G, { merit: 1 }, op.title);
+  else applyFx(G, { rep: -1, fam: -1, why: { fam: '消息傳回家，家人提心吊膽' } }, op.title);
+  if (op.reward) op.reward(G, r);
+  logLife(G, `${op.title}：${{ victory: '大獲全勝', win: '取勝', draw: '勉強收場', defeat: '失利' }[r]}。`);
+  promoteCheck(G);
+  flush(G);
+  G.op = null;
+  // 戰友
+  G.team = [];
+  goNext(G);
+}
+/* ===== 事件：防大附高與防衛大學 ===== */
+const V = '薇若妮卡', M = '米切爾', AUG = '奧古斯特·維爾哈特';
+function O(kind, name, line, attr, cat, diff, why, win, lose, x) {
+  return Object.assign({ kind, name, line, attr, cat, diff, why, win: { t: win[0], fx: win[1] || {} }, lose: { t: lose[0], fx: lose[1] || {} } }, x || {});
+}
+function ally(G) { const a = G.allies.find(x => !x.gone); return a ? a.name : null; }
+function sisterAge(G) { return 6 + (age(G) - 15); }
+
+EV.e_enroll = {
+  title: '入學首月', hint: '你的「寧願自己扛」會在這裡第一次被人看見。',
+  text: G => `防大附高的宿舍是八人間，鋼架床的床腳焊著編號。${G.tags.examResult === 'reserve' ? '備取生的床位在最靠門的上鋪，每個進出的人都要從你腳邊經過。' : '你的床位靠窗，窗外是三層防禦閘的混凝土牆。'}${ally(G) ? `${ally(G)}和你分在同一個班，兩個人沉默地對看了一眼，各自把行李搬進櫃子。` : ''}米切爾翹著腿坐在你的床邊：「新生要熟三樣：點名、補給、教官的脾氣。其他的我罩你。」他抬眼打量你，「別硬撐，邊境來的，更要學會開口。」`,
+  opts: G => [
+    O('conserv', '跟著學長學規矩', '少說話，多做事，跟著米切爾熟悉校內生態', 'pol', 'social', 6, '低調適應，成本低', ['你把米切爾說的每一條都記在了小本子上。三週後，點名、補給、教官的脾氣你都摸熟了，也沒有人找你的麻煩。', { mitch: 2 }], ['你太謹慎，被教官點名「不夠主動」，也錯過了幾次建立關係的機會。', { mitch: 0 }], { mitch: true }),
+    O('iron', '向貴族生下戰書', '和同寢的貴族生打一場模擬賽，當場站穩腳跟', 'proBody', 'assault', 9, '以民用模組硬扛制式模組，風險高', ['模擬賽打到最後，你用一發榴彈逼出了對方的位置。他起身時臉色發青，卻伸手拉了你一把：「你的架子是廢鐵，你不是。」', { rep: 1, pro: 1, why: { pro: '以弱勝強的實戰' } }], ['對方的訂製模組反應快得多，你被輕易壓制，結果在全班面前出了醜。', { rep: -1 }]),
+    O('trick', '用配給糖換人脈', `把${G.family.sister.name}塞給你的配給糖分給全寢室，順便打聽各人底細`, 'pol', 'social', 7, '利用人情與情報，收益不穩', ['糖在一個晚上就被分光了。換來的是各人的底細、教官的偏好，還有兩個願意在關鍵時刻替你說話的同學。', { rep: 1, pol: 1 }], ['糖不夠分，有人覺得你是在收買，背後說你「邊境人就會這一套」。', { rep: -1 }]),
+  ],
+  after: G => { G.tags.mitchReady = true; }
+};
+EV.e_enroll.opts0 = EV.e_enroll.opts;
+EV.e_enroll.opts = G => { const o = EV.e_enroll.opts0(G); o.forEach(x => { const a = x.after; x.after = (G, r) => { G.tags.mitchReady = true; a && a(G, r); }; }); return o; };
+
+EV.e_council = {
+  title: '學生會的刁難', vero: true, hint: '薇若妮卡就在旁邊看著。她不會替你解圍，但每一步都在她的名冊上。',
+  text: G => `春天，學生會把一份值勤表貼上了公告欄：整個月的夜哨、裝備檢查與戰術倉庫清點，全部由「Lu」一人負責。名單下的簽名是三年級的${AUG}，維爾哈特家的長子，會內世家派系的領頭人。表面上他對會長畢恭畢敬，值勤表卻是繞過她擬的。${V}站在走廊另一頭，端莊得無懈可擊，視線掠過你，沒有停留。`,
+  opts: G => [
+    O('conserv', '接下並做到無懈可擊', '夜哨、檢查、清點，每一項都不出錯', 'pro', 'endure', 8, '一個月的體力與耐心消耗', ['一個月後，值勤表上沒有一個叉。第三十天夜裡，你在倉庫門口遇到巡視的薇若妮卡。她停了半步：「這個月，有人說你是最會幹活的邊境生。」她沒有再多說，但記下了你的名字。', { trust: 2, rep: 1, aff: 1 }], ['一個月撐下來，你熬壞了眼睛，漏掉了一次檢查。維爾哈特的人把那次失誤印成了公告。', { rep: -1, trust: -1 }], { vero: true }),
+    O('iron', '當面頂回去', '公開要求依規與三年級幹部比試，贏了就免做', 'polRep', 'politics', 10, '在世家派系面前正面對抗', ['你直接走到學生會長桌前：「這份表不符合規定，我請求公開比試。」滿室寂靜。薇若妮卡的眼角彎了半分，宣布：「依規，准。」比試你贏了，值勤表被當場撕碎。', { rep: 2, aff: 2, why: { aff: '會長看見你的骨氣' } }], ['你的請求被駁回了，還被扣上了「不服從」的帽子。薇若妮卡看著你，沒說話，眼神很涼。', { rep: -1, trust: -2, why: { trust: '會長認為你太衝動' } }], { vero: true }),
+    O('trick', '找出把柄反告一狀', '查出值勤表繞過會長擬定的程序違規，借會長之手收拾', 'pol', 'politics', 9, '利用規則與派系矛盾，收益不穩', [`你翻遍了學生會的歷屆章程，找到那份值勤表缺少會長簽核的證據，匿名放進了薇若妮卡的信箱。第二天${AUG}的名字從值勤表上消失了。你知道她知道是誰。`, { pol: 1, aff: 2, trust: 1, why: { aff: '會長嘴上說不許耍小聰明，心裡卻認同', trust: '她認為你的算計有分寸' } }], [`證據被${AUG}一方先銷毀了，你反成了「誣告」的嫌疑人，欠下了一個教官的人情才脫身。`, { debt: 1, rep: -1 }], { vero: true }),
+  ]
+};
+EV.e_farewell = {
+  title: '會長畢業', vero: true, hint: '她比你大三屆，這是你們之間距離最遠的一段。',
+  text: G => `夏天，三年級的畢業典禮在操場上舉行。薇若妮卡代表學生會致辭，聲音穩得像鐵軌：「我們將前往防衛大學，在那裡等待下一批人。」台下的人聽見的是滴水不漏的公爵千金，只有你看見她在講稿翻頁時，手指停了一下。典禮結束，人群散去，她在校門口等你。`,
+  opts: G => [
+    O('conserv', '只說「請保重」', '在校門口敬禮，客氣而不失分寸', 'pol', 'social', 7, '以學弟身分，不越線', ['「請保重，會長。」你敬了一個標準的禮。她「嗯」了一聲，轉身時小聲補了一句：「……你也是。」', { trust: 2 }], ['你的客氣讓她眼底的光暗了一下。「……就這樣？」她收回視線，轉身走了，背影比平常更直。', { aff: -2 }], { vero: true }),
+    O('iron', '說「兩年後我追上去」', '當面立下追趕的目標', 'polRep', 'social', 8, '直接表態，需要底氣', ['「三年後，防衛大學。我會站在你面前，和你同一級。」她看了你很久，終於笑了，笑得很輕：「那你最好不要遲到。」', { aff: 3, why: { aff: '她收下了這個約定' } }], ['你的話說得太急，反讓她覺得你在逞強：「別說大話，先把這學期的成績單拿給我。」', { aff: -1 }], { vero: true }),
+    O('trick', '托妹妹的畫轉交', `把${G.family.sister.name}畫的外骨骼塞進她的口袋，說是護身符`, 'pol', 'family', 6, '拿家人的心意當話題，成本低', [`她打開那張畫著歪歪扭扭外骨骼的紙，看了很久。「……你妹妹畫得比你誠實。」她把畫小心折好放進胸前口袋，沒再說話。`, { aff: 3, fam: 1 }], ['她禮貌地收下了畫，眼神卻已經飄向別處。這份心意沒有送進她心裡。', {}], { vero: true }),
+  ],
+  after: G => { G.rel = Math.max(G.rel, 2); G.lastContact = G.t; }
+};
+EV.e_farewell.opts0 = EV.e_farewell.opts;
+EV.e_farewell.opts = G => { const o = EV.e_farewell.opts0(G); o.forEach(x => { const a = x.after; x.after = (G, r) => { G.rel = Math.max(G.rel, 2); G.lastContact = G.t; a && a(G, r); }; }); return o; };
+
+EV.e_family1 = {
+  title: '家書與津貼', hint: '志願役的津貼是全家下個月的口糧。',
+  text: G => `高二的秋天，一封貼著配給區郵戳的信寄到了營區。信封裡是${G.family.sister.name}用蠟筆畫的一家四口，旁邊歪歪扭扭寫著「哥哥」。${G.family.mother.name}的字很小，只寫了三行：配給券又減了，${G.family.father.name}${G.family.father.alive ? '最近在碼頭多接了兩班' : '的身體不好'}，家裡一切都好。你把「一切都好」那四個字看了很久。這個月的津貼剛發。`,
+  opts: G => [
+    O('conserv', '全額寄回家', '一分不留，換成配給券與藥', 'fam', 'family', 5, '穩妥，但自己的裝備更緊', ['你把津貼包好，連同一張手寫的「我很好」寄了出去。回信很快：母親說妹妹抱著信睡了一整晚。', { fam: 1 }], ['郵路出了問題，津貼延遲了整整兩週。家裡撐著沒說，直到你從同鄉那裡才聽到。', { fam: -1 }]),
+    O('iron', '留一半買裝備零件', '「我自己扛」：寄一半，信裡寫一切都好', 'pro', 'endure', 6, '自己苦撐換裝備，家人不知情', ['你把省下的錢換了一組耐磨護膝與關節潤滑組。信裡寫的是：「一切都好。」你在三個月後的演習裡，第一次覺得機架沒有拖後腿。', { pro: 1, why: { pro: '裝備改善後練得更扎實' } }], ['你多留了一半，家裡那邊卻出了狀況：妹妹病了一場，母親沒告訴你，你是事後才知道。', { fam: -1 }]),
+    O('trick', '託同鄉轉運配給券', '用津貼向同鄉換配給券，讓東西經他們的手運回家', 'pol', 'social', 7, '利用同鄉網絡，收益不穩', ['同鄉們很樂意幫忙：一箱罐頭、兩袋藥、一疊配給券，沿著邊境的小路悄悄運回了家。你欠了他們一頓酒，但沒人在意。', { fam: 1, rep: 1 }], ['東西被層層抽成，到家只剩一半。你欠的人情倒是記得牢牢的。', { debt: 1 }]),
+  ]
+};
+EV.e_border = {
+  title: '邊境同鄉被盤查', hint: '兩頭都不被信任，是邊境出身者逃不開的日常。',
+  text: G => `冬天，憲兵隊把一名邊境籍的學員帶進了禁閉室，罪名是「與邊境自由陣線有通訊往來」。你認識他：${ally(G) || '同寢的杜蘭'}說過，他的家人還在邊境配給區，那封被截下的「通訊」只是一封報平安的家書。校內的氣氛在三天內冷到了冰點，邊境生走在走廊上都被人側目。米切爾一臉鐵青：「這種事，每一屆都會來一次。」`,
+  opts: G => [
+    O('conserv', '依規申訴', '準備證據，請教官出面做擔保', 'pol', 'politics', 8, '走正規程序，慢但穩', ['你整理了家書原文、郵戳與時間線，請教官聯署了擔保。三天後，他被放了出來。雖然被記了一個警告，但沒有人再提「通敵」兩個字。', { rep: 1, mitch: 1 }], ['申訴被「待查」兩字擱置，邊境生的風聲越傳越難聽。', { rep: -1 }]),
+    O('iron', '闖禁閉室要人', '憑一股氣闖進去，當場和憲兵講理', 'proBody', 'assault', 11, '對抗憲兵，風險極高', ['你擋在禁閉室門口，直接對憲兵隊長說了一句：「他是我的人，要關，連我一起。」對方愣住了。這一幕被半個校區看見，邊境生從此沒人敢小看你。', { rep: 2, mitch: 3, why: { rep: '為同鄉站出來' } }], ['憲兵沒有給你面子，你被扣了三十分鐘，還被記了過。', { rep: -1 }]),
+    O('trick', '寫信給遠在防大的薇若妮卡', '藉她的名義與影響力把事情壓下去', 'pol', 'politics', 7, '借力，需要欠人情', [`你寫了一封只有三行的信。她的回信隔天就到：「這件事，我會處理。欠我一次。」兩天後，禁閉室的門開了，憲兵隊長親自向那名學員致歉。`, { aff: 2, debt: 1, why: { aff: '你終於肯開口求助', debt: '她記下了這筆帳' } }], ['信被憲兵截下，沒能送到。反而給了他們「與貴族私下串聯」的另一個把柄。', { rep: -1, trust: -1 }], { vero: true, need: G => G.rel >= 2 ? null : '還沒有能求助的人' }),
+  ]
+};
+EV.e_famcrisis = {
+  title: '妹妹發燒', hint: '家人的事，沒有可以拖延的時間。',
+  text: G => `高三的秋天，電報在凌晨三點把你叫醒：${G.family.sister.name}高燒不退，配給區的診所缺藥，${G.family.mother.name}在診所門口守了一夜。電文只有兩行，沒有一句求助。你知道他們不會求助，這是邊境人的習慣，也是你的習慣。${G.stats.fam <= 4 ? '你心裡一直懸著一塊石頭，已經很久沒有睡過好覺了。' : ''}`,
+  opts: G => [
+    O('conserv', '預支津貼與積蓄買藥', '把一年的積蓄全拿出來，託同鄉送回', 'fam', 'family', 7, '花錢解決，穩但肉痛', [`藥在第二天抵達。${G.family.sister.name}燒退的那個清晨，母親在電話裡哭了，你站在走廊聽了很久。`, { fam: 2 }], ['藥送到了，但晚了一天，妹妹落下了咳嗽的毛病。', { fam: -1 }]),
+    O('iron', '申請外勤任務領高額津貼', '接下最苦的野外任務，換最高的任務津貼', 'proBody', 'endure', 9, '用自己的身體去換，風險高', ['你熬了五天五夜的外勤，換回了足夠買藥、買營養品與下個季度配給券的津貼，順便被教官記了一筆戰功。', { fam: 1, merit: 2 }], ['外勤任務拖了太久，津貼延誤，妹妹是靠鄰居湊的藥熬過來的。你在任務裡扭傷了腳踝。', { fam: -1, carry: [{ why: '腳踝舊傷未癒', v: -1, cats: ['combat'], left: 2 }] }]),
+    O('trick', '請米切爾引薦軍醫科人脈', '走軍醫科的路線，請專業的人幫忙', 'pol', 'social', 7, '借人脈，欠人情', [`米切爾二話不說，連夜帶你去找了軍醫科的學姐。「邊境孩子的藥，不收錢。」學姐說得很簡單，你欠下的是一份你這輩子都還不完的人情。`, { fam: 2, mitch: 1, debt: 1 }], ['軍醫科的流程太慢，藥還是靠買的。人情欠了，事卻沒辦成。', { debt: 1 }], { mitch: true }),
+  ]
+};
+EV.e_grad = {
+  title: '畢業與推薦', hint: '防衛大學是貧民唯一的合法上升管道，現在差一張推薦。',
+  text: G => `夏天，畢業典禮的鐘聲在操場上響了三遍。你站在隊列裡，${G.tags.recommended ? '教官組的名冊上，你的名字被圈了一圈，推薦欄寫著「優」。' : '你的名字不在推薦名單的最上面，但也沒有被劃掉。'}邊境志願役十二人，到畢業時只剩下七個。防衛大學的入學名額有限，最後一道關，是誰替你說話。`,
+  opts: G => [
+    O('conserv', '走正規成績與教官推薦', '憑三年的成績與教官的評語', 'pro', 'social', 7, '穩妥，但看起來沒有亮點', ['教官推薦書上只有兩行字：「專業，穩定。」夠了。錄取通知在畢業隔週寄到。', { rep: 1 }], ['成績單上缺少亮點，你被排在了候補名單的最前面。', { rep: -1 }]),
+    O('iron', '向軍部申請特別甄試', '憑三年的實戰紀錄，直接要求加試', 'polRep', 'politics', 10, '越過學校，直接向軍部爭取', ['特別甄試上，你以三年累積的實戰評分讓考官啞口無言。這個名額是你自己打下來的。', { rep: 2, merit: 2 }], ['甄試被軍部以「程序不符」駁回。你依舊進了防大，但名次落在最末。', { rep: -1 }]),
+    O('trick', '請薇若妮卡寫推薦信', '請已在防大的她出面，推薦你入學', 'pol', 'politics', 8, '借貴族之力，欠人情', [`她的推薦信只有一頁，語氣一貫的端莊：「該生專業可靠，品格堪任。」落款是學生會前會長與凡爾瑟公爵家的家徽。你收到時，信封角落貼著一張手寫的便箋：「欠我兩次。」`, { aff: 2, trust: 1, debt: 1 }], ['她看完你的請求，只回了一句：「你想靠我？」之後三個月，沒有再回你的信。', { trust: -2, aff: -2 }], { vero: true }),
+  ],
+  after: G => { G.rank = 2; }
+};
+EV.e_grad.opts0 = EV.e_grad.opts;
+EV.e_grad.opts = G => { const o = EV.e_grad.opts0(G); o.forEach(x => { const a = x.after; x.after = (G, r) => { G.rank = 2; a && a(G, r); }; }); return o; };
+
+EV.e_reunion = {
+  title: '防衛大學重逢', vero: true, hint: '她已經是大三學員，感情線從這一章正式展開。',
+  text: G => `秋天，防衛大學的新生報到處排滿了人。你把行李放下，一抬頭，就看見了站在樹下的黑長髮少女。三年過去，她已經是二十一歲的大三學員，肩章上的學生代表標誌被她別得一絲不苟。她朝你走來，在三步外停住：「我說過，不要遲到。」你分不清那是責備，還是鬆了口氣。${G.hidden ? '' : ''}`,
+  opts: G => [
+    O('conserv', '以學弟身分行禮、只談公事', '站得筆直，敬禮並匯報報到狀況', 'pol', 'social', 8, '拘謹，但安全', ['你敬了禮，匯報了報到狀況。她聽完，點頭：「嗯。」然後轉身，走了十幾步，又回頭：「……晚點，我請你吃飯。」', { trust: 3, aff: 1 }], ['你的客氣讓她的臉色慢慢冷了。「你是來報到的，不是來見我的。」她轉身走了。', { aff: -3 }], { vero: true }),
+    O('iron', '約她模擬賽見高低', '「三年前說好的，現在可以比一場了」', 'proBody', 'assault', 9, '直接約戰，輸贏看實力', ['你們在防衛大學的訓練場打了一場。你贏了半格，她輸了半格。她摘下頭盔，頭髮亂得不像公爵千金：「……下次，我會贏。」', { aff: 4, trust: 1 }], ['她比你想的強。你被壓得毫無還手之力，但她遞過來的水瓶是溫的。', { aff: 1 }], { vero: true }),
+    O('trick', '先聯絡她身邊的人', '先向她的同學打聽她今天的心情，再選時機', 'pol', 'social', 7, '迂迴，收益不穩', ['你避開了風頭上的她，在傍晚的圖書館找到她，手裡帶著她愛吃的糖。「你怎麼知道？」「有人告訴我。」她別開臉，耳根卻紅了。', { aff: 3 }], ['你的迂迴被她看穿了：「打聽我？下次直接問。」她的語氣很冷，眼神卻有一點笑。', { trust: -1 }], { vero: true }),
+  ],
+  after: G => { G.rel = Math.max(G.rel, 3); G.lastContact = G.t; }
+};
+EV.e_reunion.opts0 = EV.e_reunion.opts;
+EV.e_reunion.opts = G => { const o = EV.e_reunion.opts0(G); o.forEach(x => { const a = x.after; x.after = (G, r) => { G.rel = Math.max(G.rel, 3); G.lastContact = G.t; a && a(G, r); }; }); return o; };
+
+EV.e_faction = {
+  title: '貴族派系的邀請', vero: true, hint: '你在邊境生與貴族圈之間，兩頭都不是人。',
+  text: G => `冬天，${AUG}換上了防大的學員軍官制服，在餐廳門口攔住了你：「Lu，維爾哈特家的訂製模組廠最近在招人。你的戰術風格我們很欣賞。」他笑得很客氣，「只要你站到我們這邊，制式模組的配發，我來安排。」他身後站著六名維爾哈特派的學員。餐廳裡的所有人都在假裝吃飯。`,
+  opts: G => [
+    O('conserv', '婉拒、保持中立', '沒有明確拒絕，也沒有答應，把話留有餘地', 'pol', 'politics', 8, '不得罪人，也不得好處', ['你說：「我是邊境志願役出身，不方便站隊。」他的笑容淡了淡，但沒有發作。這件事後來傳到薇若妮卡耳朵裡，她只說了一句：「很穩。」', { rep: 1, trust: 1 }], ['你的含糊被當成了軟弱。維爾哈特派從此沒再把你當成需要拉攏的人，卻把你當成了可以欺負的人。', { rep: -1 }], { vero: true }),
+    O('iron', '公開拒絕並反將一軍', '當著所有人的面拒絕，並點出派系壟斷技術的問題', 'polRep', 'politics', 11, '直接與世家派系對立', ['你說：「模組是軍隊的，不是家族的。」餐廳裡一片死寂，然後是第一聲掌聲，來自一桌平民出身的學員。', { rep: 2, why: { rep: '為平民與邊境生出頭' } }], ['你的話被當成了挑釁。維爾哈特派在接下來的三個月裡，用各種方式讓你的日子難過。', { rep: -2 }]),
+    O('trick', '兩面下注換取零件', '口頭答應合作，換取一批制式模組零件，但不站隊', 'pol', 'politics', 9, '玩火，收益大但欠債', ['你拿到了一箱制式模組零件，也讓對方相信你正在考慮。你的機架在三天後升級了。', { tier: 'standard', debt: 1, why: { debt: '拿了維爾哈特家的零件' } }], ['對方識破了你的兩面手法，零件沒拿到，還欠了一個「誠意」的人情。', { debt: 2, rep: -1 }])
+  ]
+};
+EV.e_love1 = {
+  title: '約會與取捨', vero: true, hint: '感情會進，也會退。她不會為你一直等。',
+  text: G => `防大第一年的秋天，${V}訂了週末的假：她要你陪她回公爵府吃一頓家宴。同一天，戰術教官貼出了加練名單，你的名字在最上面。${G.hidden ? '你左肩的舊傷還在隱隱作痛，你已經瞞了她好一陣子。' : ''}她抱著手臂靠在營房門口，什麼都沒說，眼神已經寫滿了：選吧。`,
+  opts: G => [
+    O('conserv', '準時赴約並帶糖', '請假、準備禮物、準時出現', 'pol', 'social', 6, '穩妥，犧牲一天訓練', ['你換上整潔的軍禮服，口袋裡裝著她愛吃的那種老牌糖。家宴上，她的父親公爵面無表情，她在桌下悄悄勾住了你的小指。', { aff: 3, trust: 1 }], ['家宴上你緊張得說錯了稱呼，她的母親用眼神刮了你一層皮。回程的車上，她笑得肩膀發抖。', { aff: 1 }], { vero: true }),
+    O('iron', '取消約會去加練', '訓練優先：你相信這是為了以後', 'pro', 'endure', 6, '犧牲感情換成長', ['你在訓練場上多揮了三小時汗，戰術教官點頭記了一筆。回到營房時，桌上放著一盒被冷掉的糖，沒有字條。', { pro: 1, aff: -3, why: { aff: '又把她排在訓練後面' } }], ['你加練過度扭了腰，還讓她等了三個鐘頭。她只說了一句：「下次，別找藉口。」', { aff: -5, trust: -1 }], { vero: true }),
+    O('trick', '帶她去看邊境夜景', '把家宴改成兩個人的出走，帶她去邊境外圍看夜景', 'pol', 'social', 8, '出格，賭她的心意', ['你騎著借來的舊巡邏車帶她出了城。邊境的夜空沒有城市的燈，只有星星與遠處哨所的紅光。她靠著你的肩，很久沒說話。「……這就是你長大的地方？」', { aff: 4, trust: 2 }], ['巡邏車半路拋錨，你們在荒地裡走了兩個小時。她一路沒有抱怨，回到營區才說：「下次，我來規劃。」', { aff: -2 }], { vero: true }),
+  ]
+};
+EV.e_mod = {
+  title: '制式模組配發', hint: '戰功與關係，決定你的機架能不能升級。',
+  text: G => `防大三年級的秋天，軍工合作處貼出了一份制式模組的配發名單，名額只有六個。你的民用級模組已經跟你征戰了三年：關節潤滑組磨得發亮，護膝的焊痕反覆補過。${G.tier === 'standard' ? '你手上已有制式級模組，這次爭取的是更高階的調校與備件。' : ''}擁有制式級模組，代表在同等條件下，你終於不再吃虧。`,
+  opts: G => {
+    const up = G.tier === 'civil' ? { tier: 'standard' } : { pro: 1 };
+    return [
+      O('conserv', '通過考評正式配發', '準備材料與考評，走正規流程', 'pro', 'social', 8, '穩，但名額競爭激烈', ['你通過了考評。配發當天，你把民用級模組一件件卸下，包進布裡，像是在告別一位老戰友。', up], ['考評差了半分，你被排在了第七名。這一年，你只能繼續用舊模組。', {}]),
+      O('iron', '擔任試驗志願者', '用身體測試新模組的極限，換配發名額', 'proBody', 'endure', 10, '高風險，高回報', ['試驗花了三個月，你的肩胛骨和膝蓋留下了無數針孔，但配發書最先送到了你手裡。', Object.assign({ pro: 1 }, up)], ['試驗中途，關節模組失控夾傷了你的右臂。你被送進醫務所，名額被別人補上。', { inj: true }]),
+      O('trick', '請薇若妮卡向公爵家軍工廠引薦', '借貴族渠道，取得配發', 'pol', 'politics', 9, '借力，欠人情', ['公爵家軍工廠的主管收到了她的推薦函，兩週後你拿到了一箱調校過的制式模組。', Object.assign({ debt: 1, aff: 1 }, up)], ['她回信：「這種事，不要開第二次口。」你沒拿到名額，也讓她對你多了一分冷淡。', { trust: -1 }], { vero: true }),
+    ];
+  }
+};
+EV.e_love2 = {
+  title: '她被調往前線', vero: true, hint: '距離會讓關係變薄，也會讓默契變深。',
+  text: G => `防大四年級的秋天，${V}提前一年畢業，授少尉軍階，被調往邊境前線的作戰參謀部。臨行前的夜晚，她站在營房窗外，月光把肩章照得雪亮：「三年。你只要別忘了回我的信。」你想說什麼，卻發現一個字都擠不出來。`,
+  opts: G => [
+    O('conserv', '約定書信往來', '各自努力，每月一封信', 'pol', 'social', 7, '平淡，需要耐心', ['你們的信每月一封，不長，字跡越來越熟悉。她在信尾總是寫一句沒頭沒腦的叮嚀：「別忘了吃飯。」', { trust: 2 }], ['你的信被工作壓得越來越短，她的回信也越來越簡潔。兩個人都沒意識到，距離已經悄悄變遠了。', { aff: -3 }], { vero: true }),
+    O('iron', '申請調往同一戰區', '憑戰功爭取分發，直接去她的戰區', 'polRep', 'politics', 10, '越級爭取，風險高', ['分發結果下來，你的名字出現在她所在戰區的名單上。你把那頁紙折好放進胸前口袋。', { aff: 3, trust: 2, merit: 1 }], ['申請被駁回，還被教官說「不要為了私情影響分發」。你覺得很丟臉，不敢告訴她。', { rep: -1, aff: -2 }], { vero: true }),
+    O('trick', '寄一件親手改裝的護肩', '用自己的手藝，為她改裝一件耐衝擊護肩', 'pro', 'social', 6, '用手藝說話，成本低', ['護肩的內側刻了兩個字：「別逞強。」她收到後，在信裡寫：「這句話，應該是我對你說的。」', { aff: 4 }], ['護肩尺寸量錯了，她穿著不合身，卻寫信說「很好」。你知道她在撒謊。', { aff: 0 }], { vero: true }),
+  ]
+};
+EV.e_commission = {
+  title: '畢業分發', hint: '這是一個不可逆的職涯選擇。',
+  pickTitle: '選擇你的軍旅路線',
+  text: G => `夏天，防衛大學的畢業典禮在大操場舉行。你胸前別上了少尉的軍階，這是邊境貧民出身者所能走到的、最不容易的一步。分發名單攤在教官桌上，三個方向，三種人生：邊境前線、參謀部門、軍工研發。${G.mitch.status === 'ok' ? '米切爾遠遠地朝你舉起一瓶不知從哪弄來的汽水。' : ''}`,
+  pick: G => [
+    { name: '邊境前線', line: '帶一個班，進駐最前方的哨所', desc: '體魄+1，戰功+2。更危險，也更容易立功。', confirm: true, t: '你選了最前方的哨所。教官看了你一眼，在名單上簽了字：「去吧，別死。」', fx: { body: 1, merit: 2 }, after: G => { G.track = 'front'; G.rank = 3; logLife(G, '以少尉軍階分發邊境前線。'); } },
+    { name: '參謀部門', line: '在作戰參謀部做規劃，與議會有更多接觸', desc: '權謀+1，聲望+1。離戰場遠，卻離權力近。', confirm: true, t: '你選了參謀部。名單上的簽字很輕，你卻知道自己簽下的是另一種戰爭。', fx: { pol: 1, rep: 1 }, after: G => { G.track = 'staff'; G.rank = 3; logLife(G, '以少尉軍階分發作戰參謀部。'); } },
+    { name: '軍工研發', line: '加入軍工廠，與模組研發部門合作', desc: '專業+1，並多一次裝備成長的機會。', confirm: true, t: '你選了軍工研發。你知道，這個選擇意味著你會比別人更早摸到「領先一代」的邊。', fx: { pro: 1, prep: 1 }, after: G => { G.track = 'industry'; G.rank = 3; if (G.tier === 'civil') G.tier = 'standard'; logLife(G, '以少尉軍階分發軍工研發部門。'); } }
+  ]
+};
+/* ===== 大型行動資料、軍官與傳承階段事件、日常、結局 ===== */
+const FT = ['精算沉穩', '寧願自己扛', '專業苛刻', '保守求穩', '重情護家'];
+const MT = ['強勢果決', '腹黑算計', '護短傲嬌', '端莊滴水不漏', '佔有慾強'];
+const UT = ['夢遊', '天生神力', '過目不忘', '運氣好得離譜', '怕蟲怕到全家出動', '愛撿廢鐵', '能把任何東西拆成零件'];
+function genChildren(G) {
+  if (G.children.length) return;
+  const girls = G.shuffle(['艾蓮娜', '凱特', '露西亞', '莉亞', '米婭', '瑟蕾']), boys = G.shuffle(['亞瑟', '卡斯', '雷恩', '伊森', '諾亞', '奧斯卡']);
+  const n = G.r() < 0.6 ? 2 : 1;
+  const mk = (given, girl, birth) => ({ given, girl, birth, ft: G.pick(FT), mt: G.pick(MT), ut: G.pick(UT), pass: null, path: null });
+  G.children.push(mk(girls[0], true, 27));
+  if (n === 2) { const girl = G.r() < 0.5; G.children.push(mk(girl ? girls[1] : boys[0], girl, 30)); }
+}
+function kidName(G, c) { return c.given; }
+function kidDesc(G, c) { return `${c.given}（${c.girl ? '女' : '男'}，承父「${c.ft}」、承母「${c.mt}」，天生怪癖：${c.ut}）`; }
+
+/* ---------- 大型行動 ---------- */
+OPS.m_inter = {
+  title: '校際聯合演習', mission: '攻下訓練場中央的旗點並守到終局哨', enemy: '北境軍官學校紅隊', place: '預備役訓練場', base: 8, phases: ['assault', 'defend'], merit: 3,
+  intro: G => ['夏天的預備役訓練場像一口燒開的鍋。兩校的學員站在場地兩端，對面是北境軍官學校的紅隊，整齊的制式模組在日光下反著冷光。你們這邊雜牌居多，邊境生、平民生與幾個不願意站隊的貴族生。'],
+  decisive: G => '旗點已在視線範圍內，對方的指揮官正在調整防線，終局哨還剩二十分鐘。',
+  after: {
+    victory: G => '終局哨響時，旗點還插在你們手裡。看台上的教官收起了記分板，旁邊一個軍部來的觀察員在本子上寫了很久。米切爾在場邊吹了一聲長長的口哨。',
+    win: G => '終局哨響，記分板上你們多了半格。對方的隊長走過來跟你握了手：「你們的架子不行，打法不錯。」',
+    draw: G => '終局哨響，雙方打成平手。教官在講評時只說了一句：「還要練。」',
+    defeat: G => '終局哨響，紅隊的旗幟插在了場地中央。你們站在場邊聽講評，沒有人說話。'
+  }
+};
+OPS.m_final = {
+  title: '畢業考核', mission: '穿越教官組設下的封鎖線，在天亮前撤出遺址', enemy: '教官組黑旗隊', place: '舊鍛造廠遺址', base: 9, phases: ['breach', 'withdraw'], merit: 4,
+  intro: G => ['畢業考核在深夜開始。教官組的黑旗隊把舊鍛造廠遺址封成了一座鐵桶，所有畢業生分成小隊，要在天亮前穿過封鎖線、拿到核心區的密碼箱，然後撤出遺址。這不是演習，這是三年的總結算。'],
+  decisive: G => '密碼箱已在你們手裡，天色開始泛白，教官組的追擊在身後咬得越來越緊。',
+  after: {
+    victory: G => '天亮時，你們是第一組帶著密碼箱走出遺址大門的隊伍。教官攔在門口，打開箱蓋看了一眼，只說了一個字：「優。」',
+    win: G => '你們在日出前撤出了遺址。教官核對了箱內物品，在名冊上畫了一個圈。',
+    draw: G => '你們帶著半個密碼箱走出遺址，教官在名冊上寫了一個「可」。',
+    defeat: G => '天亮了，你們仍被困在遺址深處。教官的哨聲響起，你們被判定「未能撤出」。'
+  },
+  reward: (G, r) => { if (r === 'victory' || r === 'win') G.tags.recommended = true; }
+};
+OPS.m_patrol = {
+  title: '邊境巡防實習', mission: '護送補給車隊穿過廢工業帶', enemy: '邊境自由陣線游擊小隊', place: '廢工業帶', base: 9, phases: ['assault', 'withdraw'], merit: 4,
+  intro: G => ['邊境的風帶著鐵鏽與機油的味道。這是你第一次以實習軍官的身分回到這裡。廢工業帶的煙囪像一排殘缺的牙，補給車隊的引擎在腳下震動。你知道，對面那些人，口音和你一模一樣。'],
+  decisive: G => '游擊小隊的第一輪襲擊被你們打散了，但你從無線電裡聽到了一句熟悉的方言喊話。',
+  after: {
+    victory: G => '補給車隊毫髮無傷地抵達哨站。游擊隊撤退時，對面有人用方言喊了一句什麼，你沒有回頭。',
+    win: G => '車隊抵達哨站，損失了兩輛車。哨長在你的簽名欄上蓋了章：「不錯。」',
+    draw: G => '車隊在半路棄了半數物資才抵達。哨長沒有說話，只是替你倒了一杯熱水。',
+    defeat: G => '車隊被打散，你們花了三天才在廢墟裡找回失散的人。回哨站那天，你一句話也說不出來。'
+  }
+};
+OPS.m_contest = {
+  title: '全軍戰技大賽', mission: '在三輪對抗中擊敗各校精英隊', enemy: '各校精英隊', place: '防衛大學競技場', base: 10, phases: ['breach', 'defend'], merit: 5,
+  intro: G => ['全軍戰技大賽在防衛大學競技場舉行。看台上坐滿了軍部的觀察員，也坐著議會席位上的公爵與伯爵。各校的精英隊穿著統一的家徽護甲入場，聚光燈把每一道焊痕、每一塊磨損都照得清清楚楚。你知道，這是你的民用架子（或剛換上的制式模組）能被所有人看見的舞台。'],
+  decisive: G => '前兩輪的比分咬得很緊，最後一輪的場地被設成了據守戰，雙方都沒有退路。',
+  after: {
+    victory: G => '決賽哨響，全場一片寂靜，然後是爆發性的掌聲。薇若妮卡在貴賓席遠遠看著你，端莊的表情裡藏著一絲沒藏好的笑。',
+    win: G => '你們拿下了亞軍。頒獎台上，軍部觀察員多看了你一眼。',
+    draw: G => '你們止步第三輪。散場後你一個人在場邊把護具一件件擦乾淨。',
+    defeat: G => '你們在第二輪就被淘汰。看台上有人笑了，笑聲很輕，但足夠刺人。'
+  },
+  reward: (G, r) => { if ((r === 'victory' || r === 'win') && G.tier === 'civil') applyFx(G, { tier: 'standard' }, '戰技大賽獎勵'); }
+};
+OPS.m_border1 = {
+  title: '奪回邊境前哨', mission: '拔除叛軍佔據的舊鍛造廠前哨', enemy: '叛軍前哨守軍', place: '前哨據點', base: 11, phases: ['breach', 'defend'], merit: 6,
+  intro: G => [`這是你以少尉身分第一次帶隊出戰。${G.track === 'front' ? '你帶的是一個班，十個人，大半是邊境來的志願役，看你的眼神像看自家兄弟。' : G.track === 'staff' ? '你在參謀部做了三個月的規劃，這次是你的方案被批准、你也被指定親自去驗證。' : '你的新模組在這次行動中首度實戰檢驗。'}叛軍前哨藏在舊鍛造廠的廢墟中，用改裝的民用骨骼築起了簡易工事，每一個火力點都封著鋼板。`],
+  decisive: G => '前哨的外牆已被你們撕開，但內部的指揮室還在抵抗，叛軍的援兵正從東側逼近。',
+  after: {
+    victory: G => '前哨的旗幟被降了下來。你站在廢墟裡，聽見東側的援兵撤退的號角。你沒有歡呼，只是把槍背回肩上。',
+    win: G => '前哨奪回，但損失了一半裝備。軍部的電報只有一句話：「幹得好。」',
+    draw: G => '你們攻進了外圍，沒能拿下核心。上級的電報很客氣，意思是：「下次再來。」',
+    defeat: G => '前哨沒拿下，你們撤了回來。軍醫科在醫務室外排起了擔架，你一個一個看過去。'
+  }
+};
+OPS.m_border2 = {
+  title: '補給線守衛戰', mission: '守住補給公路的三處橋段直到援軍抵達', enemy: '叛軍突擊大隊', place: '補給公路', base: 12, phases: ['defend', 'withdraw'], merit: 6,
+  intro: G => ['補給公路是前線的血管。叛軍突擊大隊在三天內炸毀了兩座橋，你們被派去守最後一處橋段，直到援軍抵達。橋面的混凝土還留著上一次爆炸的焦痕，河水在橋墩下嘩嘩作響。'],
+  decisive: G => '援軍還要兩小時才能抵達。叛軍的第二波攻勢，正沿著河岸逼近。',
+  after: {
+    victory: G => '橋守住了。援軍抵達時，你們靠著橋墩坐成一排，沒有人說話，只有米切爾的菸味在風裡飄。',
+    win: G => '橋守住了，但付出了不少代價。你在傷亡報告上簽字時，手指一直在抖。',
+    draw: G => '橋被炸斷了一半，你們撤到了河對岸。補給線的缺口用了三天才補上。',
+    defeat: G => '橋沒守住。補給車隊在河對岸被迫繞道，你們撤退時，沒人敢看彼此。'
+  }
+};
+OPS.m_peak = {
+  title: '第九鍛造廠決戰', mission: '擊潰叛軍主力，終結邊境多年的拉鋸', enemy: '叛軍主力（混編了流失的家族訂製模組）', place: '第九鍛造廠', base: 14, phases: ['assault', 'withdraw'], merit: 9,
+  intro: G => [`這場仗，議會與軍部籌劃了三年。你已是${rankName(G)}，統領的是整個戰區的突擊旅。第九鍛造廠，也就是你當年參加入學考核的那片遺址，如今成了叛軍的最後據點。${G.mitch.status === 'ok' ? '米切爾趴在你左側的陣地上，背架輕機槍的槍口在煙塵裡閃著光。' : '你想起了米切爾替你鎖緊護膝的那個早晨。'}`],
+  decisive: G => '叛軍主力已被撕開缺口，但他們的訂製模組小隊正在反撲。你得決定，是撤，還是賭一把。',
+  after: {
+    victory: G => '第九鍛造廠的旗幟換成了聯合防衛政府的軍旗。戰報送到議會時，連最挑剔的公爵席位都起身鼓了掌。你卻只想回家，看看孩子有沒有按時睡覺。',
+    win: G => '戰役勝利，叛軍主力潰退。你在戰報上簽字時，看了很久那串傷亡數字。',
+    draw: G => '雙方在鍛造廠對峙了十天，最後各自撤退。議會把它稱為「戰略性僵持」。',
+    defeat: G => '你們沒能守住攻勢，主力撤了回來。議會的質詢書比敵人的子彈更早到達。'
+  }
+};
+
+/* ---------- 軍官階段事件 ---------- */
+EV.e_council2 = {
+  title: '授勳與議會', vero: true, hint: '軍功進入議會視野，就不只是軍功了。',
+  text: G => `軍部為你頒發了一枚勳章，授勳儀式安排在議會大廳。維爾哈特派與凡爾瑟派的議員分坐兩側，面孔都很平靜，眼底卻在算計：這枚勳章，會是誰的功勞簿裡的一頁？${V}坐在貴賓席，端莊得像一尊雕像，只有你看見她的腳尖在輕輕敲著地板。`,
+  opts: G => [
+    O('conserv', '低調受勳，只談軍務', '領勳、致詞、離場，不碰任何政治話題', 'pol', 'politics', 9, '不與任何派系結盟', ['你只講了三分鐘，句句落在戰場與士兵身上。議員們找不到切入點，只能鼓掌。', { rep: 1, trust: 1 }], ['你的低調被當成了無趣，兩邊派系都沒有把你放在眼裡。', {}], { vero: true }),
+    O('iron', '當場質疑補給弊案', '在致詞中點名邊境補給的貪污問題', 'polRep', 'politics', 12, '直接對抗議會既得利益者', ['全場寂靜，然後是一個老將軍帶頭站起來。你的名字在隔天成為頭條。', { rep: 2, pol: 1 }], ['你的話被議長以「不合時宜」打斷，還被兩派議員同時記恨。', { rep: -2, debt: 1 }], { vero: true }),
+    O('trick', '借派系矛盾為補給爭取預算', '把凡爾瑟派與維爾哈特派的對立，引向邊境補給預算', 'pol', 'politics', 10, '借力，欠人情', ['兩個派系為了不在對方面前丟臉，各自追加了補給預算。你站在台上，笑得很客氣。', { pol: 1, merit: 1, debt: 1 }], ['派系的角力超出你的預期，預算沒爭取到，你反而被兩邊同時利用。', { debt: 2 }], { vero: true, situ: G.ruzhui ? [['岳家護持', 1]] : [] }),
+  ]
+};
+EV.e_propose = {
+  title: '求婚', vero: true, hint: '無論結果，這一章都會通往婚禮。差別在於這一路你付出了什麼。',
+  text: G => `你二十五歲，她二十八歲。她已是少校，肩上的橡葉在燈下泛著光。戰場上你可以精算每一發榴彈的拋物線，卻在這個晚上算不出該先開口的那句話。她把你叫到屋頂，風很大，吹亂了她的頭髮：「有話要說，就說。我不喜歡猜。」`,
+  opts: G => [
+    O('conserv', '正式拜訪公爵與公爵夫人', '穿軍禮服，帶上準備好的求婚文書', 'pol', 'politics', 10, '需要先通過凡爾瑟家這一關', ['公爵看了你很久，最後只問了一句：「你能保證她不後悔嗎？」你答：「我不能保證。但我會讓她有後悔的資格。」公爵的嘴角抽動了一下。', { aff: 3, trust: 3 }], ['公爵冷淡地收下文書，說：「一年後再說。」你沒有放棄，但心裡很沉。', { aff: -2, trust: -1 }], { vero: true }),
+    O('iron', '直接當面求婚', '單膝下跪，把戒指放在她手心', 'polRep', 'social', 9, '直球，賭她的反應', ['「嫁給我。」她愣了一下，把戒指拿起來看了很久，然後套在手指上：「……你遲到了三年。」她的眼眶很紅。', { aff: 4, trust: 2 }], ['她推開了你的手：「你連一句像樣的話都沒準備？」你狼狽地站起身，她沒有走，只是背過了身。', { aff: -4, trust: -2 }], { vero: true }),
+    O('trick', '寫一份戰術簡報式的求婚計畫書', '把求婚做成一份七頁的作戰簡報', 'pol', 'social', 8, '出奇，賭她的幽默感', ['簡報的最後一頁只有一行字：「作戰目標：與薇若妮卡共度一生。」她笑得靠在欄杆上直不起腰，笑完後眼角有水光。「……同意。」', { aff: 4, trust: 2 }], ['簡報的第三頁出現了一個排版錯誤，她指著那個錯誤，笑了很久，卻也沒有答應。「重寫。」', { aff: -2 }], { vero: true }),
+  ],
+  after: G => { G.married = true; G.rel = 5; G.lastContact = G.t; logLife(G, '與薇若妮卡結為夫妻。'); }
+};
+EV.e_propose.opts0 = EV.e_propose.opts;
+EV.e_propose.opts = G => { const o = EV.e_propose.opts0(G); o.forEach(x => { const a = x.after; x.after = (G, r) => { G.married = true; G.rel = 5; G.lastContact = G.t; logLife(G, '與薇若妮卡結為夫妻。'); a && a(G, r); }; }); return o; };
+
+EV.e_ruzhui = {
+  title: '入贅選項', hint: '這是不可逆的重大選擇。沒有默認答案，兩邊都有代價。',
+  pickTitle: '婚後，你要用哪個姓？',
+  text: G => `婚禮的籌備進入了最後一週。公爵府的管家送來一份文件，紙面上是兩個選項。${V}靠在書桌邊，端莊的臉上看不出傾向，只是用手指敲了敲桌面：「你自己決定。我不會替你選。」`,
+  pick: G => [
+    { name: '入贅凡爾瑟家', line: '冠妻姓，更名為「Lu·凡爾瑟」，子女隨母姓', desc: '收益：訂製模組管道、岳家護持、階級壁壘鬆動。代價：被貴族圈視為攀附、被邊境同鄉視為叛徒，聲望遭「靠妻家」質疑。', confirm: true,
+      t: `你在文件上簽下了「Lu·凡爾瑟」。邊境同鄉的信隔天就來了，有幾封只有一個字：「叛。」薇若妮卡把那些信一封一封收進抽屜，什麼也沒說，只是在你的茶杯底下壓了一塊她親手挑的糖。`, fx: { fam: 1, pol: 1, trust: 2, rep: -1, tier: 'family', why: { rep: '被貴族圈與同鄉質疑「靠妻家」', trust: '你把姓都交給了她' } },
+      after: G => { G.ruzhui = true; G.surname = '凡爾瑟'; G.tags.dukeBound = true; logLife(G, '入贅凡爾瑟家，更名為Lu·凡爾瑟。'); } },
+    { name: '保留獨立姓名', line: '保留「Lu」之名，子女姓氏另行商議', desc: '收益：行動自由度高，軍中聲望純度高。代價：政治資源較少，子女姓氏將成為家庭軍法趣味事件。', confirm: true,
+      t: `你在文件上簽下了單名：「Lu」。薇若妮卡看著那個簽名，嘴角微微上揚：「……我就知道。」她把另一份文件收進了抽屜，「孩子的姓，我們以後再用家庭軍法解決。」`, fx: { rep: 1, aff: 1, why: { rep: '軍中聲望純度高' } },
+      after: G => { G.ruzhui = false; G.tags.free = true; logLife(G, '保留獨立姓名，與薇若妮卡成婚。'); } }
+  ]
+};
+EV.e_lawfamily = {
+  title: '家庭軍法', vero: true, hint: '婚姻是一支兩個人的編制，條令由她來起草。',
+  text: G => `新婚第一週，${V}把一份《家庭軍法》釘在了玄關牆上，共十二條：一、不得隱瞞傷情；二、配給日必須到場；三、出任務前必須報備；四、……第十二條是用紅筆寫的：「違者，罰洗戰術靴一週。」她倚著玄關，笑得極其端莊：「簽字吧，Lu。」${G.ruzhui ? '你注意到落款處已經印好了「Lu·凡爾瑟」。' : ''}`,
+  opts: G => [
+    O('conserv', '認真簽下', '逐條讀完，簽字，並承諾遵守', 'pol', 'social', 5, '穩，但要真遵守', ['你一筆一畫簽上自己的名字。她把那張紙收進抽屜，說：「第一條，我會盯著你。」', { fam: 1, aff: 2 }], ['你簽了，卻在第三天忘了第三條。她沒有生氣，只是把那條重新抄了一遍，放在你的枕頭上。', { aff: -1 }], { vero: true }),
+    O('iron', '逐條修訂', '要求以對等條款修訂，將「不得隱瞞傷情」改成雙向', 'polRep', 'social', 9, '正面談判，有輸有贏', ['你們談了三個小時。最後的版本是雙向的：她也不得隱瞞她的政務壓力。她簽字時說：「……你學壞了。」', { aff: 2, trust: 2 }], ['談判破裂，她拿著紅筆在你的修訂稿上畫了個大叉：「罰洗戰術靴，兩週。」', { aff: -1 }], { vero: true }),
+    O('trick', '在條文裡埋下漏洞', '用細微的措辭，替自己留一點彈性', 'pol', 'politics', 8, '耍小聰明，風險是被抓包', ['她逐條審了三遍，竟然沒有看出來。直到三個月後你用上了那個漏洞，她盯著你，眼神複雜：「……你贏了一次。」', { aff: 3, why: { aff: '她被你的算計逗笑了' } }], ['她一眼就看穿了你的小算盤，罰你跪榴彈箱半小時，並在家規裡新增了一條：「不許耍小聰明。」', { trust: -2, aff: -1 }], { vero: true }),
+  ]
+};
+EV.e_child = {
+  title: '孩子', vero: true, init: G => genChildren(G), hint: '你不再只為自己的命負責。',
+  text: G => {
+    const c = G.children[0];
+    return `夏天的黎明，產房外的走廊安靜得能聽見你自己的心跳。護士抱著襁褓走出來：「是個女孩，母女平安。」你低頭看那張皺巴巴的臉，她握著你的食指，力氣出奇地大。${V}在病床上，疲憊卻仍保持著公爵千金的端莊：「抱穩了，Lu。」${G.children.length > 1 ? `三年後，家裡又添了${kidDesc(G, G.children[1])}。` : ''}${kidName(G, c)}的怪癖是「${c.ut}」，她承了你的「${c.ft}」與她母親的「${c.mt}」。`;
+  },
+  opts: G => {
+    if (G.ruzhui) return [
+      O('conserv', '依家規輪班守夜', '和薇若妮卡排好輪班表，按家規照顧', 'fam', 'family', 6, '規律，穩', ['輪班表貼在冰箱門上，你們各自在上面簽名。這是這個家第一份比軍令還準時的文件。', { fam: 1, aff: 2 }], ['輪班表被孩子的哭聲打亂，你們兩個黑著眼圈在客廳對坐到天亮。', { aff: -1 }], { vero: true }),
+      O('iron', '推掉任務全勤陪產', '把外派任務交給副手，自己守在家裡', 'pro', 'family', 8, '犧牲任務表現換家庭', ['你向軍部請了三個月假。薇若妮卡看著你笨拙地換尿布，嘴角翹得很高：「……你學得比打靶快。」', { fam: 2, aff: 3 }], ['軍部對你缺席頗有微詞，你的評價單上多了一行「戰志下降」。但家裡很安穩。', { fam: 1, rep: -1 }], { vero: true }),
+      O('trick', '請米切爾當乾爸兼師父', '把米切爾拉進家庭陣營，替孩子提前備好一位靠譜長輩', 'pol', 'social', 6, '借力，成本低', ['米切爾收到消息時，在電話那頭安靜了很久，然後吼了一句：「我他媽要哭了！」', { fam: 1, mitch: 3 }], ['米切爾手忙腳亂地抱孩子，把她弄哭了。薇若妮卡面無表情地從他手裡接走。', { mitch: 1 }], { mitch: true }),
+    ];
+    const setName = (G, who) => { G.surname = who; };
+    return [
+      O('conserv', '同意冠凡爾瑟之姓', '順著她的意思，孩子隨母姓', 'pol', 'social', 4, '最省事，但你的姓留不下', ['你把「凡爾瑟」寫進了出生登記。薇若妮卡看著那一行字，眼底有光：「……你這次反應很快。」', { aff: 3, fam: 1 }], ['你剛說完就後悔了，她看出來了：「……放心，我會給孩子留你的名字當中間名。」', { aff: 1 }], { vero: true, after: (G, r) => setName(G, '凡爾瑟') }),
+      O('iron', '堅持冠「Lu」氏', '當面說服她，孩子隨你的名字', 'polRep', 'social', 11, '她不會讓步，除非你說得動她', ['你把這個要求拆成十二條理由，從邊境的傳統講到軍屬的尊嚴。她聽完，把筆放下：「……可以。但第二個孩子隨我。」', { aff: -1, trust: 2, why: { aff: '她不太高興', trust: '你說得有理有據' } }], ['你說到一半就被她打斷：「論證不通過。孩子姓凡爾瑟。」你只能認輸。', { aff: -2 }], { vero: true, after: (G, r) => setName(G, r.succ ? 'Lu' : '凡爾瑟') }),
+      O('trick', '家庭軍法射擊對決', '把姓氏之爭交給靶場決定：誰贏，孩子隨誰姓', 'proBody', 'assault', 10, '她是學員時期的射擊冠軍', ['靶場上，最後一發點射你以半個靶心的差距贏了她。她摘下耳罩，面無表情地說：「……孩子姓Lu。但這件事，我記下了。」', { aff: 2, trust: 1 }], ['最後一發她打了十環，你只有九環。她把槍收好，微笑：「孩子姓凡爾瑟。你也不虧。」', { aff: 1 }], { vero: true, equip: [0, '靶場對決，使用家用規格槍'], after: (G, r) => setName(G, r.succ ? 'Lu' : '凡爾瑟') }),
+    ];
+  },
+  after: G => { logLife(G, `女兒${G.children[0].given}出生。`); }
+};
+EV.e_child.opts0 = EV.e_child.opts;
+EV.e_child.opts = G => { const o = EV.e_child.opts0(G); o.forEach(x => { const a = x.after; x.after = (G, r) => { logLife(G, `女兒${G.children[0].given}出生。`); a && a(G, r); }; }); return o; };
+
+EV.e_parliament = {
+  title: '議會的席位', vero: true, hint: '軍功換來的席位，不是終點，是新戰場的入口。',
+  text: G => `戰後的議會改選，國防議會空出了一個軍方代表席位，提名名單上有你的名字。${G.ruzhui ? '凡爾瑟公爵在家宴上對你舉了一杯酒，岳家的人情網在你身後鋪開。' : '你沒有家族的背書，只有戰功與同袍的名字。'}${G.rank >= 6 ? `你的軍階已是${rankName(G)}，這是一個合乎資歷的位置。` : ''}`,
+  opts: G => [
+    O('conserv', '以專業身分列席，不站隊', '只在軍務議題上發言，其他議題一概不表態', 'pol', 'politics', 10, '穩，但沒有影響力', ['你在議會上只談補給與訓練，所有議員都知道你不會被任何人收買。', { rep: 1, pol: 1 }], ['你的中立被兩派同時視為「可以不理的人」，提案連續三次被擱置。', { rep: -1 }], { vero: true, situ: G.ruzhui ? [['岳家護持', 1]] : [] }),
+    O('iron', '在議會替邊境與平民發聲', '以邊境出身者的身分，直接在議會提出補給與兵役制度改革', 'polRep', 'politics', 12, '直接對抗既得利益者', ['你的第一次發言被議長打斷了六次，但第七次，沒有人再打斷你。邊境配給區的廣播站把你的演說錄了下來。', { rep: 2, merit: 2 }], ['你的提案被議會輕描淡寫地否決了，還被貴族議員私下嘲笑為「懷舊派」。', { rep: -2 }], { vero: true, situ: G.ruzhui ? [['被邊境同鄉視為叛徒，聲援力道打折', -1]] : [] }),
+    O('trick', '借兩家派系矛盾換預算', '在公爵派與伯爵派之間做資源搬運工', 'pol', 'politics', 10, '借力，欠人情', ['兩個派系的預算案互相掣肘，你只是在恰當的時機，把兩份提案放進了同一個附件。', { pol: 1, merit: 2, debt: 1 }], ['派系的角力超出你的預期，你被兩邊同時當成了棋子。', { debt: 2, rep: -1 }], { vero: true, situ: G.ruzhui ? [['岳家護持', 1]] : [] }),
+  ]
+};
+EV.e_childexam = {
+  title: '孩子的入學考核', vero: true, hint: '輪到你站在場外了。這一次，你不能替她扛。',
+  text: G => {
+    const c = G.children[0];
+    return `${c.given}十五歲了。防大附高的入學考核在秋天開始，場地還是那片舊發電站。${c.girl ? '她' : '他'}背著自己改裝過的訓練背包，站在報到棚前，看起來和當年的你一點也不像，也不像${V}。${kidDesc(G, c)}。${V}站在你身邊，端莊的臉上看不出表情，只有手指在袖口裡掐得很緊。`;
+  },
+  opts: G => {
+    const c = G.children[0];
+    const tough = c.ft === '專業苛刻' || c.mt === '強勢果決';
+    const d = tough ? 9 : 8;
+    return [
+      O('conserv', '不干預，在場邊看', '嚴守迴避原則，不出面不說情', 'fam', 'family', d - 1, '父母不能替她扛', [`${c.given}在配電塔守滿十分鐘的那一刻，朝著場邊的方向看了一眼，沒有招手。你也沒有。`, { fam: 1, hook: G => { c.pass = true; } }], [`${c.given}落榜了。她從考場走出來，把頭盔摘下，說：「爸，我不是你。」你想說點什麼，最後只摸了摸她的頭。`, { fam: 0, hook: G => { c.pass = false; } }], { vero: true }),
+      O('iron', '親自陪練到考前', '前一個月，天天帶她跑障礙、打靶，毫不手軟', 'pro', 'endure', d, '高強度陪練，有可能過頭', [`${c.given}通過了，而且是前十名。她抱著你說：「爸，我討厭你那一個月。」你笑著回：「我也討厭我自己。」`, { fam: 1, rep: 1, hook: G => { c.pass = true; } }], [`你練得太狠，${c.given}在考核前兩天病倒了。她缺席了第一場。你在醫務室外坐了一夜。`, { fam: -1, hook: G => { c.pass = false; } }], { vero: true }),
+      O('trick', '請米切爾當伴讀師父', '請米切爾以「叔輩」的身分帶她三個月', 'pol', 'social', d - 1, '借力，替代父母', [`米切爾把${c.given}拎去倉庫幹了三個月苦力，又用機槍教她趴陣地。她通過那天，他在場邊吼得比誰都大聲。`, { fam: 1, mitch: 3, hook: G => { c.pass = true; } }], [`米切爾帶得太隨意，${c.given}在考核中被「叔叔教的歪招」害慘了。米切爾愧疚得三天沒敢見你。`, { mitch: 1, hook: G => { c.pass = false; } }], { mitch: true }),
+    ];
+  }
+};
+EV.e_rebel = {
+  title: '孩子的叛逆', vero: true, hint: '子女有自己的意志，會叛逆，也會犯錯。',
+  text: G => {
+    const c = G.children[0];
+    return `${c.given}十八歲那年，把一張寫著「我不去防衛大學」的紙拍在了餐桌上。${c.girl ? '她' : '他'}想去邊境的民間醫療站，說那裡的人需要的是醫生，不是軍官。${V}一語不發地把茶杯放下，看向你。你知道這時候不管開口說什麼，都會有人受傷。`;
+  },
+  opts: G => {
+    const c = G.children[0];
+    return [
+      O('conserv', '坐下來好好談', '不吵不罵，聽她把話說完', 'fam', 'family', 8, '耐心，但需要時間', [`你們談了整整一夜。天亮時，${c.given}把那張紙折好收起來：「爸，我會去邊境醫療站。但我也會好好準備考軍醫。」`, { fam: 2, hook: G => { c.path = '軍醫'; } }], ['談話最後演變成了互相沉默。她把門關得很輕，這比摔門更讓你難受。', { fam: -1 }], { vero: true }),
+      O('iron', '以軍法壓下去', '以家長與軍人的雙重身分命令她去防大', 'rep', 'family', 7, '強壓，容易留下心結', [`${c.given}沉默了很久，最後敬了一個標準的禮：「是。」她去了防大，卻再也沒對你笑過。`, { fam: -2, hook: G => { c.path = '軍官'; } }], [`${c.given}當夜離家出走，留下字條：「你以為家裡是營區嗎。」`, { fam: -2, aff: -2 }], { vero: true }),
+      O('trick', '父女同盟：請她媽媽出面', '讓薇若妮卡用她的方式說服孩子，你負責遮掩', 'pol', 'family', 7, '借力，但要看她願不願意', [`${V}把${c.given}叫進了書房，兩個人談了兩個小時。出來時，${c.given}眼睛紅紅的，薇若妮卡面無表情地說：「我們達成了協議。」`, { fam: 2, aff: 2, hook: G => { c.path = '民間醫師'; } }], ['薇若妮卡看著你，語氣平淡：「你又想躲到我後面？」她沒有出面，也沒有笑。', { aff: -2 }], { vero: true }),
+    ];
+  }
+};
+EV.e_retire = {
+  title: '退役', hint: '一生的軍旅，到這裡收尾。',
+  pickTitle: '退役後，你要做什麼？',
+  text: G => `${age(G)}歲，你向軍部遞交了退役申請。簽字那天，${G.mitch.status === 'ok' ? '米切爾從邊境趕來，一路罵你「終於肯退了」，罵到一半自己先紅了眼眶' : '走廊裡很安靜，只有牆上的舊照片在看著你'}。你把軍階章一枚一枚拆下，包進了布裡。這一生的軍旅，終於可以收尾了。`,
+  pick: G => [
+    { name: '回防大附高當教官', line: '把你這一輩子學的全教給下一屆', desc: '聲望+1，家庭和睦+1。', t: '你站在防大附高的操場上，台下有十五歲的邊境孩子，肩上扛著改裝的民用架。你看著他們，像在看當年的自己。', fx: { rep: 1, fam: 1 } },
+    { name: '回邊境辦補給站', line: '在配給區開一間民營補給站', desc: '家庭和睦+2，聲望+1。', t: '你在邊境配給區開了一間小小的補給站。每個月的配給日，隊伍排到了街角，大家都叫你「Lu長官」，你總是糾正：「不是長官，是Lu。」', fx: { fam: 2, rep: 1 } },
+    { name: '留任議會常任席', line: '繼續在議會替邊境與軍屬發聲', desc: '權謀+1，聲望+1，體魄−1（操勞）。', t: '你拄著手杖走進議會大廳，議員們一個一個起身。你擺了擺手：「坐，坐。我今天還有三個議題。」', fx: { pol: 1, rep: 1, body: -1 } }
+  ].map(o => Object.assign(o, { after: G => { G.rank = 9; logLife(G, `退役：${o.name}。`); } }))
+};
+EV.e_old = {
+  title: '舊傷與回顧', vero: true, hint: '陰雨天，舊傷會一起回來。',
+  text: G => `${age(G)}歲的冬天，陰雨連綿了二十天。${G.injuries.length ? `你的${G.injuries.map(i => i.name).slice(0, 3).join('、')}同時發作，老毛病像一排排久未清點的彈藥箱，終於在這個冬天全部掀了蓋。` : '你的身體其實沒有什麼大毛病，只是每個關節都在提醒你：你老了。'}${G.married ? '薇若妮卡坐在床邊替你換藥，動作和四十年前一模一樣。' : ''}`,
+  opts: G => [
+    O('conserv', '靜養並接受照顧', '把一切交給家人與醫生，好好休息', 'fam', 'family', 6, '放下逞強，也是一種勇氣', [`你破天荒地沒有反駁，躺了整整三個月。${G.children.length ? '孩子們' : G.mentee ? G.mentee.name : '老戰友們'}輪流來看你${G.married ? '，薇若妮卡一個人守著你，沒說一句重話' : ''}。`, { fam: 2, aff: 2 }], ['靜養期間你靜不下心，總想著起身，家人拿你沒辦法。', { fam: 0 }], { vero: true }),
+    O('iron', '硬撐著帶晚輩訓練', '拄著手杖，帶晚輩在院子裡打靶', 'body', 'endure', 11, '年紀不饒人，傷病也不饒人', [`你站在院子中央，用手杖指點晚輩的射姿，一個鐘頭沒有倒。${G.married ? '薇若妮卡從窗內看你，嘆了一口氣，卻沒有阻止。' : '鄰居從窗內看你，笑著搖了搖頭。'}`, { rep: 1, fam: 2 }], [`你剛站了二十分鐘就扶著牆坐下了。晚輩們嚇得圍了上來，${G.married ? '薇若妮卡冷著臉把你押回了床上' : '鄰居冷著臉把你押回了床上'}。`, { fam: -1, body: -1 }], { vero: true }),
+    O('trick', '找老戰友敘舊', '把米切爾與老同袍都請來，聊到天亮', 'pol', 'social', 6, '情感寄託，成本低', ['米切爾拄著義肢來了，帶著一瓶你們當年沒喝完的酒。你們聊了一整夜，聊到最後誰也沒提傷。', { mitch: 3, fam: 1 }], ['老戰友們的名單縮短了，來的人比你想的少。你們沒喝完那瓶酒。', {}], { mitch: true }),
+  ]
+};
+
+/* ---------- 日常（和平期） ---------- */
+function D(id, title, cond, text, opts) { PEACE.push({ id, title, cond, text, opts }); }
+D('d_famlaw', '家庭軍法庭', G => G.married, G => `${V}穿著睡袍坐在餐桌主位，面前攤著一張手寫的「起訴書」：被告Lu，罪名是「把戰術靴放在玄關正中央，讓她踩到了三次」。孩子們在旁聽席上憋著笑。她敲了敲桌面：「開庭。被告，你有什麼要說的？」`, G => [
+  O('conserv', '當庭認罪', '立刻起立，敬禮，承認錯誤', 'pol', 'social', 5, '認錯，安全', ['「我認罪。」你敬了個極標準的禮。她點點頭，宣判：「罰洗靴一週。」旁聽席爆出一陣笑聲。', { aff: 2, fam: 1 }], ['你的敬禮歪了半寸，她皺眉：「態度不夠誠懇，加罰三天。」', { aff: -1 }], { vero: true }),
+  O('iron', '當庭辯護', '搬出《家庭軍法》第七條：配給日優先', 'polRep', 'social', 9, '正面抗辯，風險是加罰', ['你引用了她親手寫的第七條，她沉默了兩秒，面無表情地宣布：「……被告無罪。但請把靴子放到鞋櫃上。」', { aff: 2, trust: 1 }], ['你的辯護被她一條一條駁回，最後她加判：「刷鍋三天。」', { aff: -1 }], { vero: true }),
+  O('trick', '以糖賄賂審判長', '把藏在抽屜裡的老牌糖放在她面前', 'pol', 'social', 7, '賄賂，賭她的心情', ['她盯著那盒糖看了三秒，宣布：「休庭。」然後面無表情地剝了一顆放進嘴裡。孩子們在旁聽席上瘋狂搖頭。', { aff: 3 }], ['她把糖推了回來：「賄賂審判長，罪加一等。」孩子們笑倒了一片。', { trust: -1 }], { vero: true }),
+]);
+D('d_sister', '妹妹的來信', G => true, G => `${G.family.sister.name}${sisterAge(G)}歲了。她寫來一封長信，字跡比小時候工整多了，說到${sisterAge(G) < 16 ? '學校的事情與她畫的新設計' : sisterAge(G) < 24 ? '想去軍工學校的念頭' : '她的工作與生活'}。信尾寫了一行：「哥，你什麼時候回來？」`, G => [
+  O('conserv', '寄禮物與回信', '寄一件她愛的小玩意，並寫一封長信', 'fam', 'family', 5, '穩', ['妹妹收到禮物的那天，在電話裡尖叫了一分鐘。', { fam: 1 }], ['郵件延遲了，她生日那天什麼都沒收到。', { fam: -1 }]),
+  O('iron', '請假回邊境看她', '請三天假，坐夜班車回家', 'body', 'endure', 7, '舟車勞頓，但值得', ['你在凌晨抵達邊境。她已經在車站等了兩個鐘頭，披著你小時候的舊外套。', { fam: 2 }], ['任務臨時加班，你沒能成行，只能在電話裡道歉。', { fam: -1 }]),
+  O('trick', '把她接到防大參觀', '託人安排她來軍營參觀一天', 'pol', 'social', 6, '借人情', ['她在防大的操場上轉了三圈，指著每一個外骨骼說：「我以後也要設計一個。」', { fam: 1, rep: 1 }], ['手續出了差錯，她被擋在了門外，哭著回了家。', { fam: -1 }]),
+]);
+D('d_mitch', '米切爾來訪', G => G.mitch.status !== 'dead', G => `門鈴響了三聲，米切爾站在門口，手上拎著一箱不知從哪弄來的合成蛋白罐頭，嘴上還在碎念：「你家鄰居太吵。」${G.mitch.status === 'injured' ? '他的左袖空蕩蕩地晃著，軍用義肢在燈下泛著冷光。' : ''}他在你的客廳坐下，把腳翹上了茶几。`, G => [
+  O('conserv', '陪他喝兩杯聊聊天', '拿出藏酒，陪他把舊事聊一遍', 'pol', 'social', 5, '穩', ['你們聊了邊境的老街、聊了第一次點名的糗事、聊了你那副焊歪的民用架。他笑著笑著就哭了。', { mitch: 3, fam: 1 }], ['你們聊到了犧牲的戰友，兩個人都沉默了。這個夜晚比想像中沉重。', { mitch: 1 }], { mitch: true }),
+  O('iron', '拉他去訓練場過兩招', '就像當年一樣，用模擬槍打一場', 'proBody', 'assault', 8, '切磋，有輸有贏', ['你們在舊訓練場打了三輪。第三輪你的榴彈清了他的陣地，他的機槍同時壓住了你。「平手！」他吼著。', { mitch: 2, pro: 1 }], ['他的陣地穩得像一座山，你被壓得抬不起頭。「你退步了。」他笑得很欠揍。', { mitch: 1 }], { mitch: true }),
+  O('trick', '請他幫忙看孩子', '把孩子扔給他，自己和薇若妮卡出去吃頓飯', 'pol', 'family', 6, '借力，風險是孩子被帶歪', ['米切爾教孩子趴陣地，教到孩子睡著，自己也睡著了。你們回來時，兩個人並排躺在沙發上。', { mitch: 2, aff: 2 }], ['孩子學會了一句米切爾的口頭禪，在餐桌上大聲重複。薇若妮卡面無表情看向你。', { aff: -1 }], { mitch: true, need: G => G.children.length ? null : '還沒有孩子' }),
+]);
+D('d_training', '保養與復健', G => age(G) < 60, G => `${age(G)}歲的你，每天清晨的第一件事是確認身體的哪個零件今天又在抗議。${G.injuries.length ? `${G.injuries[0].name}在陰天又發作了。` : ''}訓練場空無一人，教官在遠處用望遠鏡盯著你。`, G => [
+  O('conserv', '規律復健與保養', '按醫囑做復健，早睡早起', 'body', 'endure', 6, '穩，慢', ['三個月的規律復健讓你的肩膀鬆了一些，連薇若妮卡都說你「有點像個正常人了」。', { body: 1 }], ['復健沒有進展，你開始懷疑這些動作是不是只是儀式。', {}]),
+  O('iron', '加量訓練頂過去', '把訓練量翻倍，用意志撐', 'body', 'endure', 9, '有可能過頭', ['你用兩個月把體能找回了七成。薇若妮卡說：「這個月不許再加。」你點頭，第二天繼續。', { pro: 1, body: 1 }], ['你過度訓練傷了腰，躺了一個月。這是這一年最愚蠢的一次逞強。', { body: -1 }]),
+  O('trick', '改良自己的裝備', '花時間重新調校模組，補上體力的短處', 'pro', 'social', 7, '用腦子補身體', ['你重新配了關節助力與重心，同樣的動作，累積疲勞少了三成。', { pro: 1 }], ['改良花了不少時間，成效不明顯。你的工作臺被薇若妮卡命令收拾乾淨。', {}]),
+]);
+D('d_parents', '回邊境探親', G => G.family.father.alive || G.family.mother.alive, G => `${G.family.father.alive ? `${G.family.father.name}` : ''}${G.family.father.alive && G.family.mother.alive ? '與' : ''}${G.family.mother.alive ? `${G.family.mother.name}` : ''}的來信只有兩行：「家裡很好，不用掛念。」你太熟悉這句話了，它的意思是：我們撐不住了，但不想麻煩你。`, G => [
+  O('conserv', '寄錢寄物並安排看護', '把補給與醫療安排妥當', 'fam', 'family', 5, '穩', ['看護與補給在一週內到位。母親在信裡寫：「你不用這麼費心。」你笑了，把那句話釘在了辦公桌上。', { fam: 1 }], ['安排出了紕漏，看護沒按時到位。', { fam: -1 }]),
+  O('iron', '請假回去住一個月', '放下手邊的事，回邊境陪他們', 'body', 'endure', 7, '犧牲工作換陪伴', ['你在邊境的老屋住了一個月，修了屋頂，換了管線，和父親坐在門檻上一句話沒說也沒覺得尷尬。', { fam: 2 }], ['任務臨時召回，你只住了十天，就被叫走了。', { fam: -1 }]),
+  O('trick', '把他們接進軍屬宿舍', '動用軍屬待遇，把家人接到相對安全的地方', 'pol', 'politics', 8, '借制度，欠人情', ['軍屬宿舍的鑰匙在三週後交到了父母手裡。母親站在新家的窗前，摸著窗框說：「這是真的玻璃。」', { fam: 2, debt: 1 }], ['手續被擋下，需要一個你不想欠的人情。', { debt: 1 }]),
+]);
+D('d_date', '她的週末', G => G.rel >= 3 && !G.married, G => `${V}難得放了一天假。她把一張紙條塞進你的軍服口袋：「十點，南門。不許遲到。」你把那張紙條看了三遍，又想起明天還有一份必須交的戰術報告。`, G => [
+  O('conserv', '準時赴約', '提前十五分鐘到', 'pol', 'social', 6, '穩', ['你到的時候，她已經站在南門，手裡拿著兩杯茶。「你遲到了十分鐘。」「我提前了十五分鐘。」「……那就是我提前了二十五分鐘。」', { aff: 3 }], ['你到的時候，她已經走了。桌上留了一張紙條：「讓你多睡一會兒。」', { aff: -2 }], { vero: true }),
+  O('iron', '先交報告再赴約', '通宵把報告寫完，再去赴約', 'pro', 'endure', 7, '兩邊都要，很累', ['你頂著黑眼圈出現在南門。她看了你一眼，把外套披到你肩上：「……下次，不許熬夜。」', { aff: 2, pro: 1 }], ['你在約會中睡著了，頭靠在她肩上。她沒叫醒你，坐了兩個小時。', { aff: 1, trust: 1 }], { vero: true }),
+  O('trick', '把約會改成共同行動', '把約會改成兩人一起去模組試驗場', 'pol', 'social', 7, '出奇，風險是氣氛', ['她一邊罵你「約會去試驗場」，一邊認真替你調整了關節角度。回程時，她笑著說：「這是我最好的一次約會。」', { aff: 3, pro: 1 }], ['試驗場的設備壞了，兩個人在雨裡待了一下午，你們卻都笑了。', { aff: 1 }], { vero: true }),
+]);
+D('d_kids', '孩子闖禍', G => G.children.length > 0, G => { const c = G.children[G.children.length - 1]; return `${c.given}又闖禍了：${c.ut === '愛撿廢鐵' ? '把家裡的舊榴彈殼當成寶貝，藏了滿滿一床' : c.ut === '能把任何東西拆成零件' ? '把客廳的牆壁鐘拆成了二十三個零件，卻沒能裝回去' : c.ut === '夢遊' ? '半夜夢遊，爬上了衣櫃頂，抱著你的舊護具睡著了' : c.ut === '怕蟲怕到全家出動' ? '在浴室看見一隻蟑螂，整棟樓都被她的尖叫喊醒' : '把你的軍用腰帶當成跳繩，纏在了吊燈上'}。${V}站在門口，面無表情地看你：「是你教的。」`; }, G => [
+  O('conserv', '陪她一起收拾', '蹲下來，和孩子一起把殘局收乾淨', 'fam', 'family', 5, '穩', ['你們花了一個下午，把家裡恢復了原狀。孩子靠在你膝蓋上睡著了。', { fam: 1 }], ['收拾到一半，你被緊急電話叫走，孩子委屈得好幾天沒跟你說話。', { fam: -1 }]),
+  O('iron', '用家規懲罰', '宣布罰寫檢討與刷鍋三天', 'rep', 'family', 6, '嚴，有效，但會留心結', ['孩子老老實實刷了三天鍋。你注意到，薇若妮卡在旁邊偷偷笑了很久。', { fam: 0, aff: 1 }], ['孩子哭著跑進了房間。薇若妮卡瞪了你一眼：「你是教官，不是父親。」', { aff: -2, fam: -1 }], { vero: true }),
+  O('trick', '父女同盟掩護', '偷偷幫孩子把罪證毀屍滅跡，並要求保密', 'pol', 'family', 6, '父愛的灰色地帶', ['孩子和你有了一個共同的秘密。薇若妮卡早就知道，但她選擇假裝不知道。', { fam: 1 }], ['罪證被薇若妮卡一眼識破，你們父女倆被罰一起洗碗。', { aff: -1, fam: 1 }], { vero: true }),
+]);
+D('d_dinner', '議會晚宴', G => G.rank >= 3, G => `議會晚宴的長桌兩側坐滿了熟悉的面孔。${AUG}的聲音從對面傳來，笑得很客氣：「聽說你最近又立功了？」${G.married ? `${V}坐在你身邊，端莊得無懈可擊，桌下的手卻掐了你的小指一下。` : '你把酒杯握得很穩。'}`, G => [
+  O('conserv', '舉杯微笑，點到為止', '把話題繞回補給，避開所有政治陷阱', 'pol', 'politics', 8, '穩', ['整晚你只談補給，連最愛挑刺的議員也找不到破綻。', { rep: 1 }], ['你的話太少，被議員評為「沒有鋒芒」。', {}], { vero: true }),
+  O('iron', '當面頂回去', '直接反駁他話裡的暗刺', 'polRep', 'politics', 10, '得罪人，也立威', ['你一句話把他的暗刺反彈了回去。全桌安靜了兩秒，然後有人笑出了聲。', { rep: 1, pol: 1 }], ['你的反駁用力過猛，被指責「失禮」。', { rep: -1 }], { vero: true }),
+  O('trick', '把他的話題引到他自己身上', '順著他的話，把問題丟回給他的派系', 'pol', 'politics', 9, '借力，風險是被反噬', ['你一句「聽說貴府的補給預算也有些問題」，他的笑容僵了半秒。', { pol: 1, debt: 0 }], ['他早有準備，反手把你推進了更尷尬的位置。', { debt: 1 }], { vero: true }),
+]);
+
+/* ---------- 時間軸 ---------- */
+const BEATS = [
+  { type: 'exam', t: 0 },
+  { id: 'e_enroll', t: 1 }, { id: 'e_council', t: 2 }, { id: 'e_farewell', t: 3 },
+  { id: 'e_family1', t: 4 }, { id: 'e_border', t: 5 }, { type: 'op', id: 'm_inter', t: 7 },
+  { id: 'e_famcrisis', t: 8 }, { type: 'op', id: 'm_final', t: 10 }, { id: 'e_grad', t: 11 },
+  { id: 'e_reunion', t: 12 }, { id: 'e_faction', t: 13 }, { type: 'op', id: 'm_patrol', t: 15 }, { id: 'e_love1', t: 16 },
+  { id: 'e_mod', t: 20 }, { type: 'op', id: 'm_contest', t: 23 }, { id: 'e_love2', t: 24 }, { id: 'e_commission', t: 27 },
+  { type: 'op', id: 'm_border1', t: 28 }, { id: 'e_council2', t: 32 }, { type: 'op', id: 'm_border2', t: 36 },
+  { id: 'e_propose', t: 40 }, { id: 'e_ruzhui', t: 40 }, { id: 'e_lawfamily', t: 42 },
+  { id: 'e_child', age: 27, s: 3, jump: true },
+  { type: 'op', id: 'm_peak', age: 36, s: 3, jump: true }, { id: 'e_parliament', age: 38, s: 0 },
+  { id: 'e_childexam', age: 42, s: 0, jump: true }, { id: 'e_rebel', age: 46, s: 0, jump: true },
+  { id: 'e_retire', age: 56, s: 0, jump: true }, { id: 'e_old', age: 66, s: 0, jump: true },
+  { type: 'end', ageFn: lifeSpanAge, s: 2, jump: true }
+];
+function lifeSpanAge(G) {
+  const v = 80 + (G.stats.body - 5) + (G.stats.fam - 5) * 0.5 - G.injuries.length * 1.5;
+  return clamp(Math.round(v), 70, 88);
+}
+
+/* ---------- 結局 ---------- */
+function gradeOf(G) {
+  const pts = G.merit * 0.5 + totalStat(G) * 2 + (G.aff + G.trust) / 8 + G.children.length * 4 + (G.mentee ? (G.mentee.pass ? 4 : 2) : 0) + (G.tags.cleared ? 2 : 0) + (G.tags.frontHero ? 3 : 0) + (G.tags.protoProven ? 3 : 0) + (G.tags.moleCoup ? 3 : 0) + (Math.min(G.rank, 8) - 2) * 3 - G.injuries.length * 1.5 + G.mitch.bond / 20;
+  const g = pts >= 152 ? ['傳奇', 'S'] : pts >= 140 ? ['名將', 'A'] : pts >= 120 ? ['良將', 'B'] : pts >= 92 ? ['無愧此生', 'C'] : ['平凡一生', 'D'];
+  return { pts: Math.round(pts), name: g[0], rank: g[1] };
+}
+function endGame(G) {
+  if (G.ended) return;
+  G.ended = true;
+  ch(G, '壽終正寢');
+  const a = age(G);
+  const near = [];
+  if (G.married) near.push(G.aff + G.trust >= 130 ? `${V}握著你的手，掌心還是和年輕時一樣涼，卻握得很穩` : G.aff + G.trust >= 90 ? `${V}坐在窗邊，沒有說話，也沒有離開` : `${V}站在門口，隔了很久才走近，把你的手放進被子裡`);
+  if (G.children.length) near.push(`${G.children.map(c => c.given).join('、')}圍在床邊`); else if (G.mentee) near.push(`${G.mentee.name}站在床尾，背脊挺得像一支槍`);
+  if (G.mitch.status !== 'dead' && G.mitch.bond >= 40) near.push(`米切爾拄著柺杖，嘴裡還在罵你「這麼老才走」`);
+  if (G.family.sister) near.push(`${G.family.sister.name}把當年那張畫著歪外骨骼的紙放在了你的枕邊`);
+  say(G, `${displayName(G)}，${a}歲。那個冬天沒有下雨，窗外的光很淡。${near.join('；')}。你想起了十五歲那個清晨，${G.family.mother.name}替你折正的領口，${G.family.father.name}按在你肩上的那兩下。你一生都是「寧願自己扛」的人，但在最後的時刻，你發現，扛著你的人從來不少。`,
+    '你的呼吸變得很輕。你聽見有人在你耳邊說了一句話，沒有聽清。然後，一切安靜了下來。壽終正寢。');
+  const gr = gradeOf(G);
+  G.feed.push({
+    k: 'report', grade: gr, name: displayName(G), age: a, rank: rankName(G), merit: G.merit, stats: Object.assign({}, G.stats),
+    aff: G.aff, trust: G.trust, mitch: G.mitch.bond, married: G.married, ruzhui: G.ruzhui, children: G.children.map(c => kidDesc(G, c)), injuries: G.injuries.map(i => i.name),
+    life: G.life.slice(), seed: G.seed, track: G.track, script: (SCRIPTS[G.script] || {}).name, ending: endingOf(G), epilogue: epilogueLines(G)
+  });
+  G.node = { kind: 'end' };
+}
+/* ===== 路線分支：前線／參謀／軍工、感情裂痕、無子傳承 ===== */
+const hasM = G => G.mitch.status === 'ok';
+const needM = G => (hasM(G) ? null : '米切爾已不在');
+const needV = G => (G.rel >= 3 ? null : '還沒有能開口求助的人');
+
+/* ---------- 前線線 ---------- */
+EV.x_front1 = {
+  title: '哨所的新兵', hint: '新兵的命，會在你下一個決定裡。',
+  text: G => `秋天，你帶著一個班進駐黑風口哨所。十個人，七個是邊境志願役，最年輕的才十六歲，上哨第一晚就把配給的罐頭藏進貼身口袋，說要寄給妹妹。你認得這個動作。哨所的風從彈孔灌進來，吹得值勤表嘩嘩響。班裡的老兵湊過來問：「長官，這些娃兒，怎麼帶？」`,
+  opts: G => [
+    O('conserv', '嚴格輪訓，按條令帶班', '每天六小時輪訓，值勤與休息排得死死的', 'pro', 'endure', 8, '穩紮穩打，但新兵會累', ['三個月後，這個班的撤離演練比旅部標準快了十二秒。那個十六歲的孩子在結業考上第一個舉手：「報告長官，我想把罐頭寄給妹妹，現在可以了嗎？」', { pro: 1, merit: 1, syn: 1 }], ['輪訓太緊，有兩個人累倒在哨位上。班裡開始傳你是「鐵面長官」，你知道這句話不是誇獎。', { rep: -1 }]),
+    O('iron', '帶新兵夜襲演練', '拆成三組，半夜去摸叛軍的外圍哨', 'proBody', 'assault', 10, '用真實壓力逼出班底，風險高', ['你帶他們摸了叛軍的外圍哨。回來時天快亮了，十個人一個不少，每個人的手都在抖，眼睛卻是亮的。', { body: 1, rep: 1, merit: 2 }], ['夜襲演練中有人驚慌誤擊，差點打到友軍。你抱著傷員跑了三公里，那個孩子哭著說對不起，你一個字也沒罵出口。', { rep: -1, syn: -1 }]),
+    O('trick', '讓老兵帶新兵，自己管後勤', '把三個老兵拉到一邊，自己去跟補給站磨彈藥與藥品', 'pol', 'social', 7, '借老兵之力，欠一份人情', ['你只對老兵說了一句：「這些人，我要他們全部活著回來。」第二天開始，新兵的槍背帶全被調過了。你省下半個月，從補給站磨回了一批像樣的藥品。', { pol: 1, merit: 1, debt: 1 }], ['老兵們陽奉陰違，新兵學的全是壞習慣，你得花兩倍時間改。', { rep: -1 }]),
+  ],
+  after: G => { G.tags.squad = true; }
+};
+EV.x_front1.opts0 = EV.x_front1.opts;
+EV.x_front1.opts = G => EV.x_front1.opts0(G).map(o => Object.assign(o, { after: G => { G.tags.squad = true; } }));
+
+OPS.m_siege = {
+  title: '黑風口哨所保衛戰', mission: '守住哨所七十二小時，等待增援', enemy: '叛軍突擊大隊', place: '黑風口哨所', base: 12, phases: ['defend', 'assault'], merit: 6,
+  intro: G => [`叛軍的炮擊在凌晨三點開始，哨所的混凝土像一面被敲響的鐵鼓。${G.tags.squad ? '你帶出來的那個班站在各自的射擊口，十六歲的孩子在你右手邊，槍口穩得不像第一次上陣。' : '你帶著一個班守在各自的射擊口，每個人都在等你下第一道命令。'}${hasM(G) ? '無線電裡傳來米切爾的聲音：「左翼我罩著，你只管往前打。」' : ''}`],
+  decisive: G => '外圍陣地已經被炮火削掉一半，第二波進攻正沿著山脊逼近，增援還要十八小時。',
+  after: {
+    victory: G => '七十二小時後，增援旅的車隊壓過山脊，哨所的旗桿還立著。你的班一個不少地走出了地堡，十六歲的孩子對著太陽眨了很久的眼。',
+    win: G => '哨所守住了，付出了三條人命的代價。你在陣亡名單上一個一個簽下名字。',
+    draw: G => '哨所的外圍陣地被放棄，你們退守核心地堡，撐到了增援抵達。',
+    defeat: G => '哨所陷落了。你帶著殘存的人撤向二線，沒有人說話，只有風聲。'
+  },
+  reward: (G, r) => { if (r === 'victory' || r === 'win') G.tags.frontHero = true; }
+};
+EV.x_front2 = {
+  title: '被切斷的哨所', hint: '命令、同袍、還是更大的代價？',
+  text: G => `冬天，旅部的電令在風雪裡抵達：左翼的第七哨所被叛軍切斷，建議放棄，部隊撤至二線。${hasM(G) ? '第七哨所裡有米切爾的機槍組。' : '第七哨所裡有你帶過的三個老兵。'}電令末端的簽名是參謀次長。你把那張紙翻了兩遍。無線電裡傳出的聲音斷斷續續，只能聽清一個詞：「……救……」`,
+  opts: G => [
+    O('conserv', '依令撤到二線，改用炮火支援', '把座標交給砲兵，讓炮火壓住叛軍的進攻', 'pol', 'politics', 9, '遵守命令，把風險分攤給炮兵', ['你把炮火座標一份份交給砲兵，第七哨所撐了二十小時，炮火壓住了叛軍，守軍撤了出來，傷亡比預期少。你在電報上簽字時，手穩得像別人的手。', { rep: 1, merit: 2 }], ['炮火延誤了二十分鐘。那二十分鐘裡，第七哨所少了四個人。你在電報上簽字，沒有人敢看你的眼睛。', { fam: -1, rep: -1 }]),
+    O('iron', '違令率隊救援', '把違令的後果寫在報告第一行，帶一個班衝進風雪', 'proBody', 'survive', 11, '拿命與前途下注', [`你帶著一個班衝進風雪，在天亮前和第七哨所合流。${hasM(G) ? '米切爾叼著菸在掩體後朝你吼：「誰叫你來的！」你說：「你欠我一頓酒。」' : '老兵們看見你的那一刻，有人哭了。'}`, { rep: 2, mitch: 3, merit: 2, tags: { insubordination: true } }], ['救援隊在半路被叛軍截住，你們靠一道水溝撐到天亮才退回來。違令的處分書隔天就到了。', { rep: -2, merit: -2, inj: true }]),
+    O('trick', '請薇若妮卡調動預備隊', '一封七個字的電報，賭她的手腕與預備隊的速度', 'pol', 'politics', 9, '借貴族之力，欠人情', [`你拍了一封只有七個字的電報給她：「第七哨所，需要預備隊。」她的回覆比炮火還快：「已調。欠我。」預備隊在黎明前抵達，第七哨所保住了。`, { aff: 2, debt: 1, merit: 1 }], ['電報送出去了，卻被參謀部以「越級調動」為由壓了三個小時。你知道她盡力了，但三個小時已經夠了。', { trust: -1 }], { vero: true, need: needV }),
+  ]
+};
+
+/* ---------- 參謀線 ---------- */
+EV.x_staff1 = {
+  title: '簡報的漏洞', hint: '一張時間表，可能決定一個旅的生死。',
+  text: G => `冬天，你在作戰參謀部熬了第三個通宵，核對下週的「冬季攻勢」計畫。補給線的時間表與前線的推進速度差了整整兩天：照這個計畫走，第三旅會在沒有補給的情況下孤軍深入。簽發計畫的是${AUG}的叔父，維爾哈特派的參謀次長。${hasM(G) ? '米切爾的機槍組就在第三旅。' : ''}`,
+  opts: G => [
+    O('conserv', '私下找次長說明，請他修改', '把問題攤在他桌上，不要功勞，只要兩天的補給時間', 'pol', 'politics', 9, '不得罪人，但看對方肯不肯', ['次長聽完，看了你很久，只問了一句：「你想要什麼？」你說：「兩天的補給時間。」他點頭，把計畫書重新簽了一遍。你沒要功勞，他心裡記得很清楚。', { pol: 1, rep: 1 }], ['次長客氣地送你出門，計畫書沒有動。你知道你得換一種方式了。', { rep: -1 }]),
+    O('iron', '在簡報會上當眾指出', '把補給時間表投影在牆上，一格一格標紅', 'polRep', 'politics', 12, '正面對抗派系重臣', ['你站起來，把補給時間表投影在牆上，一格一格標紅。會場鴉雀無聲，然後是一位老將軍緩慢的點頭。次長的臉色很難看，但計畫被退回修改。', { rep: 2, pol: 1, merit: 2, tags: { enemyStaff: true } }], ['你的指控被次長用「參謀紀律」壓了下來，你還被調去邊緣的資料室，在那裡整整坐了三個月。', { rep: -2 }]),
+    O('trick', '重排修改版，經薇若妮卡之手遞上去', '熬夜重排一份補給表，以公爵家顧問的名義送進軍部', 'pol', 'politics', 9, '借力，需要她肯扛', [`你熬夜重排了一份補給時間表，格式、用詞與筆跡都對得上，請${V}以公爵家顧問的名義遞給軍部。三天後計畫修改，沒有人知道出自誰手。她在電話裡只說：「這次我替你扛。」你愣了很久。`, { aff: 3, trust: 2, debt: 1 }], [`修改版被次長識破是「繞過程序」，${V}替你擋下了質詢，代價是公爵家的一次人情。她沒有罵你，只是三天沒回信。`, { trust: -2, aff: -2, debt: 1 }], { vero: true, need: needV }),
+  ]
+};
+EV.x_staff2 = {
+  title: '洩密調查', hint: '邊境出身，在參謀部永遠是第一個被查的人。',
+  text: G => `春天，作戰參謀部的玻璃門被貼上了封條。憲兵調查組的組長在你的辦公桌前站了很久：「Lu少尉，部裡有人把冬季攻勢的計畫賣給了叛軍。你是這間辦公室唯一一個邊境出身的人。」他把一個空箱子放在你桌上，「我不想多話，你自己知道要放什麼進去。」`,
+  opts: G => [
+    O('conserv', '主動交出所有通訊與出入紀錄', '兩個箱子，三年的紀錄，一頁不漏', 'pol', 'politics', 8, '坦蕩，但紀錄太完整也會被懷疑', ['你把三年來的通訊紀錄、值勤表與出入紀錄裝了兩個箱子，放在調查組桌上：「查吧。」三天後，調查組把你的名字劃掉，順便從你的紀錄裡讀出了真正的洩密時間線。', { rep: 1, tags: { cleared: true } }], ['紀錄太完整，反而被認為「準備得太充分」。你被停職審查了兩週，名聲留下了痕跡。', { rep: -2 }]),
+    O('iron', '自己查出內鬼', '三個通宵，對比每一個版本的作戰計畫', 'proPol', 'politics', 11, '賭上自己的判斷', ['你用三個晚上對比了所有版本的作戰計畫。洩密的時間線指向一個你沒想過的名字：維爾哈特派的一位參謀官。你把證據放在調查組桌上。', { rep: 2, merit: 3, pol: 1, tags: { enemyStaff: true, cleared: true } }], ['你查到一半，被人反咬一口「干擾調查」。你被禁足兩週，內鬼是誰，已經沒人再提。', { rep: -2 }]),
+    O('trick', '請米切爾從前線帶回叛軍通訊樣本', '拿叛軍自己的密碼本，比對洩密的筆跡', 'pol', 'social', 8, '借前線的人脈，欠一頓酒', ['米切爾從前線寄來一個密封的信封，裡面是從叛軍通訊兵身上翻出的密碼本。比對之後，洩密的筆跡一目了然。他附了一張字條：「欠我的酒，加倍。」', { mitch: 3, merit: 2, rep: 1, tags: { cleared: true } }], ['信封在郵路上被調查組截下，米切爾被問話了兩小時。他在電話裡罵了你二十分鐘，罵完又問你吃飯了沒。', { mitch: -1, rep: -1 }], { mitch: true, need: needM }),
+  ]
+};
+EV.x_staff3 = {
+  title: '預算聽證會', hint: '邊境補給，在議會眼裡只是一行數字。',
+  text: G => `夏天，國防議會的預算聽證會上，邊境補給預算被點名為「最浪費的一項」。提案人是伯爵派的議員，他把一疊報表摔在桌上：「前線自報的損耗，誰能驗證？」議事廳安靜了兩秒。你坐在旁聽席，手心都是汗，因為你知道那疊報表裡有三處是真的。`,
+  opts: G => [
+    O('conserv', '以數據逐項駁斥', '十七頁損耗統計，每頁標出處', 'pro', 'politics', 9, '用資料說話，慢但穩', ['你帶來了十七頁的補給損耗統計，每一頁都標著出處。伯爵派的議員翻了三頁就不再說話，預算保住了。', { pol: 1, rep: 1, merit: 2 }], ['數據被對方指為「前線自報，不可信」，預算被砍了一成。', { rep: -1 }]),
+    O('iron', '請前線的老班長出庭作證', '把一個邊境來的老班長請進議事廳', 'polRep', 'politics', 11, '賭人心，不賭數據', ['老班長拿著帽子站在證人席上，只說了三句話，沒有人打斷他。預算案以三票之差通過。', { rep: 2, fam: 1, merit: 2 }], ['證人席上的老班長被議員刁難得語無倫次，你站在旁聽席，指甲掐進了掌心。', { rep: -1, fam: -1 }]),
+    O('trick', '拉攏兩派互咬', '在休會的走廊上，給兩邊都遞一份相反的修正案', 'pol', 'politics', 10, '借力，欠人情', ['兩個派系為了不輸給對方，各自追加了預算。你站在走廊盡頭，笑得很客氣。', { pol: 1, merit: 2, debt: 1 }], ['兩派都看穿了你的把戲，聯手把你的提案擋了下來。', { rep: -1, debt: 1 }]),
+  ]
+};
+
+/* ---------- 軍工線 ---------- */
+EV.x_ind1 = {
+  title: '原型機的試驗', hint: '領先一代的模組，要有人先用身體試。',
+  text: G => `秋天，你被分派到軍工合作處的模組試驗組。試驗台上擺著一具新型「脈衝關節」原型，工程師們叫它「阿七」。${G.tags.proto ? '你一眼就認出，它的控制板和你當年在舊鍛造廠撿到的那一具是同一個設計。' : ''}組長說：「全部試驗志願者裡，只有你的體格數據吻合。但這具原型在實驗室裡燒壞過兩台假人。」他沒有看你，只看著那具原型。`,
+  opts: G => [
+    O('conserv', '先做三輪無人台架測試', '拒絕直接上機，要求先把散熱與行程跑完', 'pro', 'endure', 9, '慢，但命保得住', ['台架測試找出了兩處散熱疏漏。工程師們修好後，原型第一次完整跑完全部行程。組長在報告上寫了你的名字。', { pro: 1, merit: 1, prep: 1 }], ['台架測試拖了兩個月，組長嫌你保守，把功勞給了別的志願者。', { rep: -1 }]),
+    O('iron', '親身上機測試', '穿上原型，直接跑全行程', 'proBody', 'endure', 11, '高風險，高回報', ['原型在你身上跑完了全部行程。關節啟動的那一刻，像有人從背後推了你一把。工程師們圍上來，沒有人說話，然後有人鼓起了掌。', { pro: 1, body: 1, merit: 2, tags: { protoPilot: true } }], ['行程跑到一半，關節模組過熱失控，夾傷了你的右臂。你被抬下試驗台，組長在報告上寫了「志願者操作失當」。', { inj: true, rep: -1 }]),
+    O('trick', '請薇若妮卡的軍工廠派技師支援', '借公爵家的技師，把原型調到穩定', 'pol', 'social', 8, '借力，欠人情', ['公爵家軍工廠的技師帶著三箱調校件來了，一個下午就把原型調穩。你欠下的人情，被她用一句「不用還」帶過。', { pro: 1, aff: 1, debt: 1 }], ['技師來得慢，原型的調校又被別的組搶了先。你兩頭都沒討好。', { rep: -1 }], { vero: true, need: needV }),
+  ]
+};
+EV.x_ind2 = {
+  title: '專利與授權之爭', hint: '這個設計，到底屬於誰？',
+  text: G => `秋天，原型機的量產設計圖定稿，設計欄上有你的名字。維爾哈特家的訂製模組廠主動找上門，要以天價買斷專利；軍部則要求全數無償移交。工程師們都看著你，因為在這張紙上簽字的人，只有你一個。${AUG}站在試驗場外，端著一杯茶，笑得很客氣。`,
+  opts: G => [
+    O('conserv', '依規移交軍部，附帶民用版條款', '簽字的同時，在附件裡寫一條：民用級版本優先配發邊境志願役', 'pol', 'politics', 9, '穩，換的是長遠的普及', ['你在移交書上簽字，同時把一條條款寫進附件：量產的民用級版本，必須優先配發邊境志願役。三年後，邊境哨所的民用架終於有了脈衝關節。', { rep: 2, fam: 1, merit: 3, tags: { openTech: true } }], ['附件條款被軍部以「超出權限」刪掉了，技術被收走，你什麼也沒留下。', { rep: -1 }]),
+    O('iron', '拒絕兩邊，公開技術規格', '把規格書寄給所有軍工學校與民間工坊', 'polRep', 'politics', 12, '同時得罪軍部與世家', ['規格書在三天內傳遍了整個邊境的工坊。世家與軍部都氣得發抖，卻沒人能收回已經流出去的東西。老工匠們寄來了一整箱手工焊的感謝信。', { rep: 2, pol: 1, tags: { openTech: true } }], ['軍部以洩密罪名約談了你整整兩天。規格書被追回，你的名字上多了一個污點。', { rep: -2, debt: 1 }]),
+    O('trick', '賣給維爾哈特家，換訂製模組', '簽下買斷合約，換一整套家族訂製的調校件', 'pol', 'politics', 8, '一夜暴富，名聲代價', [`你在合約上簽字的那天，${AUG}親自送來了一整套家族訂製模組的調校件。你的機架從此領先一代，也從此被貼上了「維爾哈特的人」的標籤。`, { tier: 'family', rep: -1, debt: 1, tags: { vilhartBound: true } }], ['合約的附加條款藏了陷阱，你交出了設計，卻沒拿到承諾的模組。', { debt: 2, rep: -1 }]),
+  ]
+};
+OPS.m_trial = {
+  title: '原型模組實戰測試', mission: '穿著原型模組穿越廢工業帶，摧毀叛軍的物資倉庫', enemy: '叛軍巡邏機動隊', place: '廢工業帶', base: 12, phases: ['assault', 'withdraw'], merit: 6,
+  intro: G => [`軍部決定把原型模組送上真實戰場。你站在廢工業帶邊緣的集結點，腳下的脈衝關節輕輕嗡鳴。${G.tags.proto ? '這具模組的核心，是你當年從鍋爐殘骸下撿出來的那一塊。' : ''}工程師們隔著防彈玻璃看著你，每個人都握著一份「失敗報告」的空白表格。`],
+  decisive: G => '物資倉庫的外牆已被你撕開，但叛軍的巡邏機動隊正沿著鐵軌包抄，你的模組電量只剩一半。',
+  after: {
+    victory: G => '倉庫在爆炸中連燒了三個小時，你借著脈衝關節一個長距離的躍進脫離了包圍。工程師們在無線電裡笑得像瘋了：「它活下來了！你也是！」',
+    win: G => '倉庫被摧毀，原型模組帶著兩處傷痕撤了回來。試驗報告上只有一行字：「可量產。」',
+    draw: G => '你們摧毀了半個倉庫，模組因過熱提前撤出。試驗組的人圍著它，討論了整整一夜。',
+    defeat: G => '倉庫沒能摧毀，模組在撤離路上被擊中，核心燒壞了。你背著殘骸走了十公里，一路沒有說話。'
+  },
+  reward: (G, r) => { if (r === 'victory' || r === 'win') G.tags.protoProven = true; }
+};
+
+/* ---------- 感情裂痕（進、退、散） ---------- */
+EV.e_cold = {
+  title: '她說：我不知道我們在做什麼', vero: true, hint: '這是你們之間最危險的一章：進、退，或散。',
+  text: G => `秋天，你在公爵府的偏廳等了她四十分鐘。她推門進來，連外套都沒脫：「我今天只有十分鐘。」十分鐘裡，你們談了三件事，吵了兩件。${G.hidden ? '其中一件，是你瞞了她很久的傷。' : G.debt >= 2 ? '其中一件，是你欠了太多人情，還得全是她的臉面。' : '其中一件，是你這個月只寫過一封信。'}她停在門口，沒有回頭：「Lu，我不知道我們在做什麼。」`,
+  opts: G => [
+    O('conserv', '低頭道歉，承諾改變', '把「寧願自己扛」的瞞與拖，一條條攤開', 'pol', 'social', 7, '放下身段，賭她肯不肯聽', ['你把那些瞞與拖，一條一條攤開，向她道歉，沒有找任何藉口。她聽完，過了很久才說：「……下週，來吃飯。」', { aff: 3, trust: 3, tags: { reconciled: true } }], ['你的道歉說得太客氣，像一份檢討書。她收下了，也收起了表情：「我需要時間。」', { aff: -3, trust: -1, tags: { breakup: true } }], { vero: true }),
+    O('iron', '當面質問，要她也說清楚', '「你要我說清楚，我就說清楚。你也是。」', 'polRep', 'social', 9, '兩敗俱傷，或一起痛快', ['你把話一件一件放在桌面上，她也是。吵到最後，兩個人都笑了，笑得有點難看：「……這才像話。」', { aff: 2, trust: 4, tags: { reconciled: true } }], ['你的質問變成了爭吵，她摔門而去。三週後，你在公告欄看到她調往另一個戰區的命令。', { aff: -6, trust: -3, tags: { breakup: true } }], { vero: true }),
+    O('trick', '請米切爾當說客', '把她「請」到餐廳，讓米切爾數到三', 'pol', 'social', 6, '借力，成本低，但輕重難控', ['米切爾二話不說，把你按在椅子上灌了半瓶酒，又去把她「請」到了餐廳：「你們兩個，我數到三，各說一句人話。」', { aff: 2, trust: 2, mitch: 2, tags: { reconciled: true } }], ['米切爾說得太直，反而惹毛了她：「你連道歉都要找人代勞？」', { aff: -4, trust: -2, mitch: -1, tags: { breakup: true } }], { mitch: true, need: needM }),
+  ]
+};
+EV.e_cold.opts0 = EV.e_cold.opts;
+EV.e_cold.opts = G => EV.e_cold.opts0(G).map(o => Object.assign(o, {
+  after: (G, r) => {
+    if (r.succ) { G.tags.breakup = false; logLife(G, '一場爭吵之後，與薇若妮卡和好。'); }
+    else { G.rel = 2; G.aff = Math.min(G.aff, 38); logLife(G, '與薇若妮卡漸行漸遠。'); }
+  }
+}));
+EV.e_parted = {
+  title: '各自的路', hint: '分開之後，日子還是要過。',
+  pickTitle: '分開之後，你要把力氣放在哪裡？',
+  text: G => `冬天，${V}調往西線戰區的命令已經公布。你們沒有再見面，也沒有人再提那封沒寫完的信。軍營裡的日子照常運轉，只是食堂的某張桌子，空了一個固定的位置。${hasM(G) ? '米切爾什麼也沒問，只是把一瓶酒放在你的床頭。' : ''}`,
+  pick: G => [
+    { name: '全心投入軍務', line: '把所有的力氣花在下一場仗', desc: '專業+1，戰功+3。但你會越來越孤獨。', t: '你把每一個週末都排滿了訓練與簡報。戰功簿上的數字漲得很快，床頭那封沒寫完的信，也越壓越深。', fx: { pro: 1, merit: 3, aff: -2, why: { aff: '長期失聯' } }, after: G => { G.tags.lone = true; } },
+    { name: '回邊境陪家人', line: '請假三個月，回配給區住下', desc: '家庭和睦+2，聲望+1。', t: `你拖著行李回到了配給區。${G.family.sister.name}已經長高了一截，拉著你的袖子說要教你畫外骨骼。母親把你的舊床單洗了三遍。`, fx: { fam: 2, rep: 1 }, after: G => { G.tags.homeward = true; } },
+    { name: '寄出一封晚了很久的信', line: '用最短的話，寫一封不求回信的信', desc: '好感小幅回升；她收不收，是她的事。', t: '信只有三行。你沒有等回覆。三週後，一個沒有署名的信封寄到了營區，裡面是一顆老牌糖，和一張只寫了「……笨蛋」的便箋。', fx: { aff: 3, trust: 1, why: { aff: '她收下了這封信' } }, after: G => { G.tags.lastLetter = true; } },
+  ]
+};
+EV.x_second = {
+  title: '多年後的重逢', vero: true, hint: '她還單身，你也是。',
+  text: G => `${age(G)}歲，議會晚宴的走廊盡頭，你與${V}迎面撞上。她已是上校，肩章比當年重得多，眼角有了細紋，端莊的表情在看見你的瞬間裂了一道縫。「你瘦了。」她說。你說：「你也是。」誰也沒有往前一步。${G.tags.lastLetter ? '她的胸前口袋裡，露出了一角被反覆摺過的便箋。' : ''}`,
+  opts: G => [
+    O('conserv', '以舊識身分寒暄，不越線', '握手、致意、聊聊近況', 'pol', 'social', 7, '安全，但可能就此錯過', ['你們聊了半個鐘頭的近況，都很得體。她離開時，在你的手心塞了一張字條：「下週，沒事。」', { aff: 2, trust: 1 }], ['寒暄得太得體了。她點點頭，轉身走進人群，沒有回頭。', { aff: -1 }], { vero: true }),
+    O('iron', '當面說：「當年是我錯了」', '不繞圈，把最難的一句先說出口', 'polRep', 'social', 10, '直球，賭她的底線', ['她盯著你看了很久，然後用手背擦了一下眼角：「……你還欠我一個求婚。」', { aff: 5, trust: 3, tags: { secondChance: true } }], ['她後退了半步：「你說得太晚了。」走廊的燈光照在她的肩章上，冷得像鐵。', { aff: -2 }], { vero: true }),
+    O('trick', '寄一份她愛吃的舊配給糖', '附一張寫著「還剩一顆」的字條', 'pol', 'social', 6, '小心思，成本低', ['糖在三天後被退了回來，包裝紙裡夾著她的字跡：「還剩一顆？那就一起吃。」', { aff: 4, trust: 1, tags: { secondChance: true } }], ['糖被原封不動地退回，沒有附字。', {}], { vero: true }),
+  ],
+  after: (G, r) => {
+    if (G.tags.secondChance) {
+      G.married = true; G.rel = 5; G.tags.breakup = false; G.tags.free = true; G.lastContact = G.t;
+      logLife(G, '多年後與薇若妮卡重逢，終於結為夫妻。');
+    }
+  }
+};
+EV.x_second.opts0 = EV.x_second.opts;
+EV.x_second.opts = G => EV.x_second.opts0(G).map(o => Object.assign(o, { after: EV.x_second.after }));
+
+/* ---------- 無子的傳承：徒弟 ---------- */
+const MENTEE_T = ['倔得像鐵', '手很巧', '過目不忘', '愛頂嘴', '膽子大得離譜', '半夜會夢遊'];
+EV.e_mentor = {
+  title: '營門口的孩子', init: G => {
+    if (!G.mentee) {
+      const girl = G.r() < 0.5;
+      G.mentee = { name: G.pick(girl ? ['小芮', '安妮', '米拉', '諾亞'] : ['亞歷', '賴恩', '柯特', '托比']), girl, trait: G.pick(MENTEE_T), pass: null };
+    }
+  },
+  hint: '傳承不一定要血緣。',
+  text: G => {
+    const m = G.mentee;
+    return `夏天的傍晚，一個十二歲的邊境孩子蹲在營門口，懷裡抱著半截斷掉的槍托。${m.girl ? '她' : '他'}叫${m.name}，父母死於一次補給線的爆炸，${m.girl ? '她' : '他'}在配給區的廢料堆裡找到了你名字的刻痕。「天生${m.trait}」，登記表上這麼寫。${G.married ? `${V}站在你身後，罕見地沒有出聲。` : '營房的燈光在你身後亮著，沒有人在等你吃飯。'}`;
+  },
+  opts: G => {
+    const m = G.mentee;
+    return [
+      O('conserv', '收為徒弟，走正規管道安排入學', `替${m.name}辦好監護登記，送進預備學校`, 'fam', 'family', 7, '穩，但需要耐心與時間', [`你在監護欄上簽了名。${m.name}看著那個名字，很久才說：「……我可以叫你老師嗎？」`, { fam: 1, rep: 1 }], ['登記程序拖了半年，你每週寄錢寄信，那孩子在回信裡只寫了一句：「我還在等。」', { fam: -1 }]),
+      O('iron', '親自帶在身邊訓練', `帶${m.name}出操、拆槍、跑障礙，毫不手軟`, 'pro', 'endure', 9, '高強度陪伴，可能過頭', [`三個月後，${m.name}已經能閉著眼睛拆裝你的步槍。${m.girl ? '她' : '他'}累到睡著時，嘴裡還在念拆解的口訣。你替${m.girl ? '她' : '他'}蓋上外套，第一次覺得「扛」這件事，也可以有人分。`, { pro: 1, fam: 1 }], [`你練得太狠，${m.name}在一次實彈演練中受了傷。你守了一整夜，沒有說一句重話，只是把那把槍收進了櫃子。`, { fam: -1, rep: -1 }]),
+      O('trick', '託米切爾與同鄉照看，自己出錢出面', '用人脈把孩子安置在可靠的人家', 'pol', 'social', 6, '借力，成本低', [`米切爾一邊罵你「自己的事自己扛」，一邊把${m.name}拎去倉庫幹了三個月苦力，又教${m.girl ? '她' : '他'}趴陣地。回來時，孩子看你的眼神變了。`, { mitch: 3, fam: 1 }], ['同鄉的家裡本就困難，孩子吃了不少苦，你欠下了一份不輕的人情。', { debt: 1 }], { mitch: true, need: needM }),
+    ];
+  },
+  after: G => { logLife(G, `收${G.mentee.name}為徒。`); }
+};
+EV.e_mentor.opts0 = EV.e_mentor.opts;
+EV.e_mentor.opts = G => EV.e_mentor.opts0(G).map(o => Object.assign(o, { after: G => { logLife(G, `收${G.mentee.name}為徒。`); } }));
+EV.e_mentor2 = {
+  title: '徒弟的入學考核', hint: '輪到你站在場外了。這一次，你不能替他扛。',
+  text: G => {
+    const m = G.mentee;
+    return `${m.name}十五歲了。防大附高的入學考核在秋天開始，場地還是那片舊發電站。${m.girl ? '她' : '他'}背著自己改裝過的訓練背包，站在報到棚前，${m.girl ? '她' : '他'}的架子上有你當年親手焊的第一道補強。${G.married ? `${V}站在你身邊，端莊的臉上看不出表情，手卻悄悄握住了你的手腕。` : '你站在場邊，手插在口袋裡，把指節攥得發白。'}`;
+  },
+  opts: G => {
+    const m = G.mentee, d = 8;
+    return [
+      O('conserv', '不干預，在場邊看', '嚴守迴避原則，不出面不說情', 'fam', 'family', d - 1, '師父不能替他扛', [`${m.name}在配電塔守滿十分鐘的那一刻，朝場邊看了一眼，沒有招手。你也沒有。`, { fam: 1, hook: G => { m.pass = true; } }], [`${m.name}落榜了。你在場邊站了很久，直到夕陽把影子拉得很長。${m.girl ? '她' : '他'}走過來，只說：「明年我再來。」`, { fam: -1, hook: G => { m.pass = false; } }]),
+      O('iron', '陪練到考前最後一天', '一個月的衝刺，每天都是極限', 'pro', 'endure', d, '高強度陪練，有可能過頭', [`${m.name}通過了，而且是前十名。${m.girl ? '她' : '他'}抱著你說：「老師，我討厭你那一個月。」你笑著回：「我也討厭我自己。」`, { fam: 1, rep: 1, hook: G => { m.pass = true; } }], [`陪練過頭，${m.name}在考核前夜發燒，錯失了集結。你站在醫務室外，一句辯解都說不出口。`, { fam: -1, hook: G => { m.pass = false; } }]),
+      O('trick', '請老戰友替他把關', '請米切爾與幾位舊識輪流指點', 'pol', 'social', d - 1, '借力，替代師父', [`米切爾把${m.name}拎去趴了三天陣地，回來時罵罵咧咧，眼角卻是濕的。${m.girl ? '她' : '他'}通過那天，他吼得比誰都大聲。`, { mitch: 3, fam: 1, hook: G => { m.pass = true; } }], [`老戰友們的指點各有各的路數，${m.name}被搞得一團亂，落了榜。`, { hook: G => { m.pass = false; } }], { mitch: true, need: needM }),
+    ];
+  }
+};
+/* ===== 劇本二《邊境夜襲》與劇本三《舊鍛造廠》的開場與支線 ===== */
+function famIntro(G) {
+  const f = G.family;
+  return `${f.father.name}（${f.father.job}，${f.father.trait}）、母親${f.mother.name}（${f.mother.job}，${f.mother.trait}）與六歲的${f.sister.name}（${f.sister.trait}，${f.sister.quirk}），是你在邊境配給區的全部。`;
+}
+function giveBorderAlly(G) {
+  const c = G.cands.find(x => x.origin === 'border');
+  if (c) G.allies = [Object.assign({ alive: true }, c)];
+}
+
+/* ---------- 劇本二：邊境夜襲 ---------- */
+EV.x_raid1 = {
+  title: '配給日的夜晚', hint: '你的第一個決定，在槍聲響起之前就已經開始了。',
+  text: G => `西元2060年，秋。配給日，邊境配給區的隊伍排到了街角。${famIntro(G)}你十五歲，剛在志願役報名表上簽了名，口袋裡還揣著那張被汗浸軟的收據。傍晚的警報聲沒有任何預告地響起：叛軍的一支突擊小隊與政府軍的巡邏隊在配給站外撞了個正著，流彈打穿了鐵皮屋頂，隊伍像被掀翻的沙堆一樣散開。六歲的${G.family.sister.name}死死抱住你的腿：「哥哥，我怕。」`,
+  opts: G => [
+    O('conserv', '先把家人帶進地下避難所', '裹住妹妹，扶著母親，拽著父親，沿排水渠摸進鄰居的地窖', 'fam', 'family', 6, '保家人，但錯過搶救的時機', ['你把妹妹裹進外套，一手扶著母親，一手拽著父親，沿排水渠摸進鄰居挖的地窖。外頭的槍聲持續了十分鐘。妹妹在你懷裡小聲說：「哥哥的心跳好大聲。」', { fam: 1 }], ['避難所的入口被震塌了半邊，你用肩膀頂了十分鐘才撐開縫隙。母親的手臂被碎鐵皮劃了一道口子，妹妹整晚沒說話。', { fam: -1 }]),
+    O('iron', '穿上鄰居的民用承重架衝出去', '撬開倉庫的鎖，第一個衝到配給站門口', 'proBody', 'assault', 9, '衝在最前面，風險高', ['你撬開鄰居倉庫的鎖，穿上那副焊痕累累的民用承重架，第一個衝到配給站門口，把一個被壓在鐵架下的少年拖了出來。你沒有開火，只是用身體擋住了那一輪流彈。', { pro: 1, rep: 1, tags: { rescuedKid: true } }], ['你衝得太急，承重架的關節卡死在一堵矮牆前。你被碎片擦傷了肩膀，狼狽地被鄰居拖了回來。', { rep: -1 }]),
+    O('trick', '借夜色與管線引開叛軍小隊', '記得配給區的每一條管線，點亮三盞廢棄的警示燈', 'proPol', 'recon', 8, '用地形與熟悉度，收益不穩', ['你記得配給區每一條管線的走向。你點亮了三盞廢棄的警示燈，把叛軍小隊引向了空無一人的舊倉庫。巡邏隊趁機穩住了陣線。', { pol: 1, rep: 1 }], ['警示燈同時引來了雙方的火力。你趴在管線下方一動不動，直到槍聲停了才爬出來。', { rep: -1 }]),
+  ]
+};
+OPS.m_raid = {
+  title: '配給站保衛戰', mission: '守住配給站，直到巡邏隊的增援抵達', enemy: '叛軍的小股突擊隊', place: '邊境配給站', base: 8, phases: ['defend', 'withdraw'], merit: 3,
+  intro: G => [`配給站的鐵皮牆在每一輪射擊下都在發抖。一個背著輕機槍、穿著防大附高制服的少年從巡邏車上滾了下來，嘴裡罵著髒話，一趴上矮牆就像換了個人。「喂，那邊拆家用架子的小鬼！你叫什麼？」他一邊換彈鏈一邊嚷，「我是米切爾，二年級！我守，你想辦法讓他們不敢靠近！」`],
+  decisive: G => '叛軍的第二波突擊正沿著排水渠摸近，巡邏隊的增援還要二十分鐘。配給站裡還有二十幾個沒來得及疏散的鄰居。',
+  after: {
+    victory: G => '增援抵達時，配給站的鐵皮牆上只多了一排彈孔，沒有一個鄰居受傷。米切爾坐在彈藥箱上喘氣，朝你豎了一根大拇指：「喂，你這小鬼，有點意思。」',
+    win: G => '配給站守住了，但有幾戶人家的屋頂塌了。增援隊長走過來，在你肩上拍了兩下，什麼也沒說。',
+    draw: G => '配給站守了一半，鄰居們靠著你拖延的時間逃出了大半。增援隊長的臉色很難看。',
+    defeat: G => '配給站失守了。你把最後幾個鄰居拖進地窖，自己癱在地上，一句話也說不出。'
+  },
+  reward: (G, r) => { if (r === 'victory' || r === 'win') G.tags.warHero = true; }
+};
+EV.x_raid2 = {
+  title: '戰後調查席', vero: true, hint: '你是唯一一個比叛軍更早知道他們路線的人。',
+  text: G => `隔天清晨，巡邏隊的臨時指揮帳篷裡坐著一名黑長髮的少女，肩上別著學生會長的袖章，胸前是軍部調查官的識別牌。她是凡爾瑟公爵的獨生女${V}，十八歲，三年級。「邊境配給區裡，有人在叛軍抵達之前，先點亮了三盞警示燈。」她的聲音端莊平穩，「我想知道，是誰，又為什麼知道他們會從那條管線來。」帳篷裡的軍官們全都看向你。${hasM(G) ? '米切爾抱著手臂靠在帳篷柱子上，臉上寫著「我什麼都沒說」。' : ''}`,
+  opts: G => [
+    O('conserv', '據實說明，交出配給區的地圖與時間線', '一筆一畫畫給她看，每條管線怎麼走', 'pol', 'social', 8, '坦蕩，需要對方願意相信', ['你把配給區的管線圖一筆一筆畫在她的筆記本上，連每一盞警示燈的位置與時間都標了出來。她聽完，點頭，把筆記本收了起來：「記錄在案，不疑。」', { trust: 2, rep: 1, tags: { suspect: false } }], ['你畫得很細，反而讓她身後的軍官皺眉：「一個十五歲的孩子，對管線知道得太清楚了。」', { rep: -1, tags: { suspect: true } }], { vero: true }),
+    O('iron', '反問：為什麼巡邏隊遲到了四十分鐘', '把問題丟回去，要求公開巡邏紀錄', 'polRep', 'politics', 11, '直接對抗調查，風險高', [`你站起來：「長官，我想先問一件事。巡邏隊為什麼比配給日的規定遲到了四十分鐘？」帳篷裡一片死寂。${V}的眼角彎了半分：「……記錄，下一個。」她沒有再看你，但你知道她記住了。`, { rep: 2, aff: 2, trust: 1, tags: { suspect: false } }], ['你的反問被軍官當成了「轉移焦點」。調查官的筆尖在你的名字下劃了一道線，眼神很涼。', { rep: -1, tags: { suspect: true } }], { vero: true }),
+    O('trick', '請米切爾與鄰居作證', '讓當晚並肩作戰的人，替你說話', 'pol', 'social', 7, '借人證，欠人情', ['米切爾一腳踹開帳篷簾，把三個鄰居一起拎進來：「這小鬼救了二十幾個人，你們還要查什麼？」鄰居們七嘴八舌，帳篷裡很快變成了菜市場。調查官沒有阻止。', { mitch: 3, rep: 1, tags: { suspect: false } }], ['作證的人太雜，說法對不上，反而成了「串供」的把柄。', { rep: -1, tags: { suspect: true } }], { mitch: true, need: needM }),
+  ],
+  after: G => { G.rel = Math.max(G.rel, 1); }
+};
+EV.x_raid2.opts0 = EV.x_raid2.opts;
+EV.x_raid2.opts = G => EV.x_raid2.opts0(G).map(o => Object.assign(o, { after: G => { G.rel = Math.max(G.rel, 1); } }));
+EV.x_raid3 = {
+  title: '三張入學通知', hint: '同一個夜晚，三條路。每一條，都有人替你付過代價。',
+  pickTitle: '你要怎麼走進防大附高？',
+  text: G => `三天後，你的收據上蓋了三個不同的章。${G.tags.warHero ? '軍部的嘉獎令與巡邏隊長的推薦信一起寄到了配給站。' : '軍部的函件措辭很客氣，客氣得讓人不安。'}${G.tags.suspect ? '但函件的最後一行用紅筆寫著：「該生需列入背景複查。」' : ''}${V}站在配給站門口等你，手裡捏著三張紙：「免試特招、重新應考、還有一個……你自己看。」最後一張紙，是一張沒有署名的手寫紙條。`,
+  pick: G => [
+    { name: '免試特招', line: '憑戰功與推薦信，直接入學', desc: `戰功+2。省去考核，但沒有同梯隊友，${G.tags.suspect ? '且入學後會被背景複查盯上。' : '且被同學視為關係戶。'}`, confirm: true,
+      t: '你在特招名冊上簽了字。簽名那一刻，你知道自己省下了一場硬仗，也錯過了一場可以結交戰友的機會。', fx: { merit: 2, rep: -1, why: { rep: '被視為關係戶' } },
+      after: G => { G.tags.recommended = true; G.tags.examResult = 'special'; giveBorderAlly(G); logLife(G, '以戰功特招入學防大附高。'); } },
+    { name: '重新應考', line: '堂堂正正，走進第九發電站', desc: '準備+1。要面對真正的多隊PVP，但能結交同梯戰友，聲望更紮實。', confirm: true,
+      t: '你把特招書推了回去：「我想自己走進去。」她看了你很久，嘴角彎了一個很小的弧度，把另一張紙遞給你：「報到棚，六點。」', fx: { prep: 1, rep: 1 },
+      after: G => { insertBeats(G, [{ type: 'exam', t: 1 }]); } },
+    { name: '展開那張紙條', line: '一張沒有署名的手寫紙條', desc: '一條只有你知道的線，一份不能對任何人說的任務。', confirm: true,
+      t: '紙條上只有一行字：「想知道當年配給站是誰洩的密嗎？用煤灰在宿舍窗台畫三道槓。」你把它折成一個很小很小的方塊，塞進了鞋墊。', fx: { pol: 1, debt: 1 },
+      after: G => { G.tags.mole = true; G.tags.moleLine = 'tied'; G.tags.recommended = true; G.tags.examResult = 'special'; giveBorderAlly(G); logLife(G, '收下一張沒有署名的紙條，入學防大附高。'); } },
+  ]
+};
+EV.x_suspect1 = {
+  title: '公告欄的紙條', hint: '懷疑像鐵鏽，一旦有了第一點，就會一直長。',
+  text: G => `春天，宿舍的公告欄上多了一張匿名的紙條：「配給區那晚，是誰點的燈？」字跡是印刷體，沒有署名。接下來的一週，你走進餐廳時，總有幾個人的筷子停頓一下。${hasM(G) ? '米切爾什麼也沒說，只是每頓都在你對面坐下，把整張桌子的目光擋成一面牆。' : ''}`,
+  opts: G => [
+    O('conserv', '照常訓練，用成績說話', '不辯解，不報復，只把每一項考核做到最好', 'pro', 'endure', 8, '用時間化解，慢', ['一個月後，期中考核的榜單貼出來，你的名字在最上面。公告欄上的紙條不知道被誰撕了。', { pro: 1, rep: 1 }], ['成績起伏不定，紙條沒被撕，反而又多了一張。', { rep: -1 }]),
+    O('iron', '貼出完整時間線，找出造謠者', '把配給站那晚的時間、地點與證人，全貼在公告欄', 'polRep', 'social', 10, '正面應戰，風險高', ['你把那晚的時間線一張一張貼在公告欄上，最後一張寫著：「還有問題，來找我。」第二天，有一個維爾哈特派的學員在你面前低頭：「……是我寫的。」', { rep: 2, pol: 1 }], ['時間線被人撕走了一半，造謠的人沒找到，你卻多了一個「愛出風頭」的名聲。', { rep: -1 }]),
+    O('trick', '請薇若妮卡公開那份調查結論', '借會長的名義，把「不疑」二字貼上去', 'pol', 'politics', 8, '借力，欠人情', [`你只寫了一封信。第二天，公告欄上貼出了學生會的正式公告：「經查，Lu學員無涉。」落款是${V}。她在走廊與你擦肩而過時，連眼神都沒給你，卻在你口袋裡塞了一顆糖。`, { aff: 2, debt: 1, rep: 1 }], ['公告來得太晚，也太官方，沒有人當一回事。', {}], { vero: true, need: G => (G.rel >= 1 ? null : '你們還沒有那樣的交情') }),
+  ]
+};
+EV.x_suspect2 = {
+  title: '軍法處的傳票', hint: '洗清，還是帶著它走完一生？',
+  text: G => `夏天，一張傳票送到了你的辦公桌：「邊境籍軍官背景複查，對象：Lu少尉。」傳票上列了三條，第一條是當年的配給站事件，第二條是你家人的郵路紀錄，第三條是「與不明人士的接觸」。審查席上坐著三位軍法官，其中一位，是維爾哈特派的人。${G.tags.mole ? '你的手心全是汗，因為第三條，有一半是真的。' : ''}`,
+  opts: G => [
+    O('conserv', '配合複查，交出家書與郵路紀錄', '攤開你全部的歷史', 'pol', 'politics', 9, '坦蕩，但被翻個底朝天', ['複查持續了三週，你的家書被翻了又翻，母親寄來的每一封信都被標上了編號。最後，軍法官把結案書推到你面前：「無涉。」', { rep: 1, tags: { cleared: true } }], ['複查拖了三個月，結案書上留了一行小字：「保留觀察。」從此你走到哪裡，都有人記著這四個字。', { rep: -1, tags: { scarred: true } }]),
+    O('iron', '帶倖存的鄰居出庭作證', '把當年配給站的人一個一個請到軍法庭', 'polRep', 'politics', 11, '賭人心，風險高', ['那天，二十幾個配給區的鄰居擠滿了旁聽席。老鄰居拄著柺杖站起來：「他是我們的孩子。」軍法官沉默了很久，在結案書上蓋了章。', { rep: 2, fam: 1, tags: { cleared: true } }], ['證人的說法被軍法官抓住了幾處矛盾，審查被迫延長。你被貼上了「串供」的標籤。', { rep: -2, tags: { scarred: true } }]),
+    O('trick', '借議會人脈施壓', '請一位欠你人情的議員替你說句話', 'pol', 'politics', 10, '借力，欠人情', ['一位議員在休會時「順便」問了一句：「那位Lu少尉的複查，進度如何？」第二天，結案書就到了。你欠他一份不小的人情。', { debt: 1, tags: { cleared: true } }], ['議員的關切被軍法官當成了「施壓」，複查反而收緊。你欠下人情，卻沒換到結果。', { debt: 1, tags: { scarred: true } }]),
+  ]
+};
+
+/* ---------- 劇本三：舊鍛造廠 ---------- */
+EV.x_forge1 = {
+  title: '廢鐵堆裡的箱子', hint: '你撿到的東西，有三個勢力正在找。',
+  text: G => `西元2060年，秋。${famIntro(G)}配給日的前一天，你照例跟著同鄉鑽進舊鍛造廠的廢料山拾荒。一個鐵皮箱子卡在鍋爐殘骸下，箱蓋上烙著只有軍工合作處才用的編號，裡面是一具單肩脈衝關節模組，用防震泡棉裹得像嬰兒。你的手指碰到它的瞬間，遠處的天空傳來了巡邏機的嗡鳴。${G.family.sister.name}早上才說過：「哥哥，我想要一件新外套。」`,
+  opts: G => [
+    O('conserv', '原樣掩埋，記下座標，三天後再來', '把箱子塞回原位，用煤灰在褲管上記三組座標', 'pro', 'endure', 6, '穩，但可能被別人先取走', ['你把箱子塞回原位，用鏽鐵板蓋好，在褲管上用煤灰記下三組座標。三天後，你一個人回來時，箱子還在，周圍多了一圈陌生的腳印。', { prep: 1, tags: { protoKnown: true } }], ['你記錯了一個座標。三天後回去，箱子不見了，只剩一圈新鮮的車轍。', { rep: -1, tags: { protoLost: true } }]),
+    O('iron', '當場拆開研究，把它接進自己的架子', '三個鐘頭，一把螺絲刀，一具民用承重架', 'pro', 'endure', 9, '風險高，成功就是你的', ['你用隨身工具花了三個鐘頭拆開外殼，發現控制板被人用手工焊接過。你把它接進自己的民用承重架，關節第一次動作時，整個人像被人從背後推了一把。', { pro: 1, tags: { proto: true } }], ['你剛拆到一半，誤觸了自毀鈕。模組燒穿了鐵皮箱，也燙傷了你的手掌。', { body: -1, tags: { protoLost: true } }]),
+    O('trick', '帶給老工匠鑑定，換取保護', '把箱子塞進懷裡，走去配給區最老的那間修理鋪', 'pol', 'social', 7, '借力，欠人情', ['老工匠看了三眼，把箱子塞回你懷裡：「不要賣，不要交，也不要讓你媽知道。」他用三個晚上幫你把模組調成能裝在民用架上的版本，什麼回報也沒要。', { pro: 1, rep: 1, debt: 1, tags: { proto: true } }], ['老工匠的嘴不夠緊。第二天，配給區的茶館裡就有人在議論「撿到軍工箱的小鬼」。', { rep: -1, tags: { protoKnown: true } }]),
+  ]
+};
+OPS.m_forge = {
+  title: '舊鍛造廠夜行', mission: '甩開兩方追查者，把箱子帶出舊鍛造廠', enemy: '軍工保安隊與叛軍搜索組', place: '舊鍛造廠', base: 8, phases: ['withdraw', 'defend'], merit: 3,
+  intro: G => [`夜裡的舊鍛造廠像一副巨大的骸骨。${G.tags.proto ? '那具模組已經接在你的架子上，關節的嗡鳴聲在寂靜的廢墟裡清楚得嚇人。' : '那個箱子在你背上，每一步都像背著一顆沒拆引信的炸彈。'}保安隊的探照燈在左邊，叛軍搜索組的手電筒在右邊，中間是一條只有你知道的、通向配給區的排水渠。`],
+  decisive: G => '你已經鑽進了排水渠，但兩方的追查者同時發現了彼此，鍛造廠裡響起了第一聲槍響，出口被火光照得通亮。',
+  after: {
+    victory: G => '兩方在鍛造廠裡打成一團，你從排水渠另一頭爬出來時，連一點泥都沒沾上。天亮之後，沒有人知道是誰帶走了那個箱子。',
+    win: G => '你甩掉了追查者，但左肩被流彈擦過，火辣辣地疼。你把傷口壓在外套下，沒有告訴任何人。',
+    draw: G => '你勉強爬出了鍛造廠，箱子的外殼被打出了幾個洞。有些東西，大概已經回不去了。',
+    defeat: G => '你被兩方的搜索組夾在中間，箱子被搶走了一半。你在排水渠裡躺了整整一夜。'
+  }
+};
+EV.x_forge2 = {
+  title: '三方的籌碼', hint: '你手裡的東西，有人願意付任何代價。',
+  text: G => `天亮後，三種人先後找上了你：軍工合作處的專員，穿著乾淨的制服，遞來一張「模組特招」的申請書；一個口音熟悉的線人，在配給站後巷攔住你，只說了「我們也可以給你想要的」；還有一個你從沒見過的少女，站在街角，端莊得與周圍的泥地格格不入，她手中也捏著同樣的箱子編號。${G.tags.proto ? '你的架子裡，還裝著它。' : G.tags.protoLost ? '那具模組已經毀了，你只剩殘骸。' : '那具模組還在你手裡。'}`,
+  opts: G => [
+    O('conserv', '交給軍工合作處，換一個正式身分', '你需要的是一條合法的路，不是一個秘密', 'pol', 'politics', 8, '穩，但失去模組', ['軍工合作處的主任在接收單上蓋章，同時遞給你一張公文：「模組特招」。你的名字第一次出現在凡爾瑟公爵家軍工部的名冊上。', { rep: 1, merit: 1, tier: 'standard', debt: 1, tags: { recommended: true, forgeTrust: true } }], ['接收員冷冷地把箱子推進證物袋：「撿到軍工資產不上報，罪名比你想的重。」你被記了一次警告，好在沒有人追究到底。', { rep: -1, tags: { recommended: true } }]),
+    O('iron', '留下它，自己扛這個秘密', '用它甩開追查者，你知道這不屬於你', 'proBody', 'survive', 10, '風險最高，收益也最高', ['你把模組接上機架，在鍋爐房的樓梯口用一次爆發性的衝刺甩開了追查者。你知道這具模組不屬於你，但在這個夜晚，它救了你。', { pro: 1, rep: 1, tags: { proto: true, hunted: true, recommended: true } }], ['模組被打壞了半邊，你也被碎片劃傷。追查者放過了你，但帶走了箱子的殘骸。', { inj: true, tags: { protoLost: true, recommended: true } }]),
+    O('trick', '賣給叛軍的線人，換一家人的安全', '交易的對象，是你一輩子都再也無法完全甩開的人', 'pol', 'politics', 9, '收益大，但是一條不歸路', ['線人遞給你一個沒有標記的信封，裡面是兩年份的配給券，與一張寫著「有事就用煤灰在鍋爐房門上畫三道槓」的紙條。這是一條你從此再也沒辦法完全收回的線。', { fam: 2, debt: 1, tags: { rebelTie: true, recommended: true } }], ['線人收了箱子，沒有付錢。你被一個陌生人在巷口攔住：「記住，你欠我們一次。」', { fam: -1, debt: 1, tags: { rebelTie: true, recommended: true } }]),
+  ],
+  after: G => { giveBorderAlly(G); G.tags.examResult = 'special'; }
+};
+EV.x_forge2.opts0 = EV.x_forge2.opts;
+EV.x_forge2.opts = G => EV.x_forge2.opts0(G).map((o, i) => Object.assign(o, {
+  after: (G, r) => {
+    giveBorderAlly(G); G.tags.examResult = 'special'; G.rel = Math.max(G.rel, 1);
+    if (i === 0) G.tags.proto = false;
+    if (i === 2) G.tags.proto = false;
+    logLife(G, ['把原型模組交給軍工合作處，以模組特招入學。', '留下原型模組，入學防大附高。', '把原型模組賣給叛軍線人，入學防大附高。'][i]);
+  }
+}));
+EV.x_forge3 = {
+  title: '追上來的人', hint: '你以為結束了，其實才剛開始。',
+  text: G => {
+    if (G.tags.proto) return `春天，軍工保安處的檢查員在宿舍門口亮出了令牌：「Lu學員，我們收到舉報，你的機架裡有一件不在登記冊上的東西。」他的目光落在你的左肩，那裡的外殼是用手工焊接的。`;
+    if (G.tags.rebelTie) return `春天，一張沒有署名的字條塞進了你的鞋櫃：「三天後，鍋爐房，帶一份學生會的值勤表。」字跡你認得，是當年那個線人的筆跡。你把字條在手心裡攥成了一團。`;
+    return `春天，軍工合作處的主任親自來了宿舍，把一份文件放在你的床上：「你當年交上來的那具模組，我們破解了一半。我需要你，把另一半補上。」他笑得像在談一筆生意。`;
+  },
+  opts: G => [
+    O('conserv', '主動登記，請求以研究名義留用', '把一切攤在檯面上，換一個正式的身分', 'pol', 'politics', 9, '穩，但失去私藏的籌碼', ['你把模組的來歷、改裝紀錄與自己的使用心得寫成了一份二十頁的報告。保安處與研究處商議了三天，最後把你的名字寫進了「特聘研究員」的名單。', { pro: 1, rep: 1, tier: 'standard' }], ['報告被保安處壓了下來，你被要求「暫時停止使用」。你收起機架的那天，晚飯一口也沒吃。', { rep: -1 }]),
+    O('iron', '拒不配合，以學員身分抗辯', '你只是一個學員，這是你撿到的、自己改的', 'polRep', 'politics', 11, '硬碰硬，風險高', ['你一句一句頂了回去，從「拾荒法」講到「改裝自用條款」。檢查員的筆記本寫滿了又翻頁，最後他合上本子：「……算你有理。」', { rep: 2, pol: 1 }], ['抗辯被駁回，保安處沒收了你的改裝件。你的機架回到了最初的民用級，肩上空了一塊。', { rep: -1, pro: -1 }]),
+    O('trick', '把模組拆成零件，分藏三處', '把要命的東西分開放，讓任何一方都只拿到一部分', 'pro', 'social', 8, '把賭注分散，需要有人幫忙', ['你和老工匠、同寢的室友、與米切爾各藏了一份。三天後，所有追查者都撲了個空，你的機架裡卻悄悄多了一件誰也看不出的小零件。', { pro: 1, pol: 1, prep: 1 }], ['零件被其中一處的人搞丟了，你損失了一半的資產，也損失了一點信任。', { rep: -1 }]),
+  ]
+};
+/* ===== 劇本四《灰鴉》：雙面身分線（也可由劇本二的紙條進入） ===== */
+const MOLE_LINE = G => G.tags.moleLine || 'tied';
+EV.x_mole0 = {
+  title: '考核前夜的訪客', hint: '你的答案，會決定你這一生要對誰說謊。',
+  text: G => `西元2060年，秋，考核前夜。${famIntro(G)}你把背包整理到第三遍時，配給站的後門被人輕輕叩了三下。來人披著洗得發白的雨衣，臉藏在兜帽的陰影裡，自稱父親年輕時的舊識，代號「灰鴉」。他把一袋印著叛軍標記的配給券放在桌上：「明天，你要進防大附高。我們需要一雙眼睛，在裡面看著。不要你開槍，不要你殺人，只要你看見什麼，就告訴我們。」他的聲音放得很輕，「你的家人，下個月也不用再排隊了。」${G.family.sister.name}在隔壁的床上翻了個身，嘴裡嘟囔了一句什麼。`,
+  opts: G => [
+    O('conserv', '答應，但提出底線：不傷害任何同學', '一條底線，換一條退路', 'pol', 'politics', 9, '先把底線說出口', ['灰鴉沉默了很久，在煤油燈下點了點頭：「底線，我們收下了。」你知道這一點頭，換不來任何保證，卻是你此刻能換到的全部。', { fam: 1, tags: { mole: true, moleLine: 'clean' } }], ['灰鴉笑了笑：「底線這東西，等你進了校門再談。」你知道自己已經沒有退路了。', { fam: 1, debt: 1, tags: { mole: true, moleLine: 'tied' } }]),
+    O('iron', '當場拒絕，並揚言檢舉', '把配給券推回去，要自己走進防大', 'polRep', 'politics', 11, '守住自己，但這條線不會就此斷掉', ['你站起來，把配給券推了回去：「我要自己用腳走進防大。」灰鴉看了你很久，嘆了口氣，沒有攔你。你知道這條線不會就此斷掉，但今晚，你守住了。', { rep: 1, tags: { moleRefused: true } }], ['對方沒有動怒，只是把一張字條塞進你的衣袋：「想通了，用煤灰在宿舍窗台畫三道槓。」你一晚沒睡。', { debt: 1, tags: { mole: true, moleLine: 'tied' } }]),
+    O('trick', '假意答應，打算進校後向教官報告', '點頭、握手、喝完那杯煤灰一樣的茶', 'pol', 'politics', 9, '玩火，賭你演得夠像', ['你點頭、握手、喝完那杯煤灰一樣的茶。進校之後，你卻不知道該把這件事告訴誰。', { pol: 1, tags: { mole: true, moleLine: 'double' } }], ['你的演技被看穿了。灰鴉笑著遞給你一個無法拒絕的任務：「你只管做你自己，我們會讓你做得很安全。」', { debt: 1, tags: { mole: true, moleLine: 'tied' } }]),
+  ]
+};
+EV.x_mole1 = {
+  title: '第一份情報', vero: true, hint: '一張值勤表，是你交出的第一塊磚。',
+  text: G => `春天，宿舍窗台上有人用煤灰畫了三道槓。你在校外的舊車站裡見到灰鴉，他遞給你一張字條：「學生會的值勤表。還有，那位會長的校外行程。」你的喉嚨發緊，因為你知道那位會長是誰。${MOLE_LINE(G) === 'clean' ? '他補了一句：「這份不傷人，你的底線，我們記著。」' : MOLE_LINE(G) === 'double' ? '他看你的眼神，似乎比上次多了一點什麼，像是在掂量你的真假。' : '他說得很輕：「這是第一份，也是最簡單的一份。」'}`,
+  opts: G => [
+    O('conserv', '交一份無關緊要的值勤表', '只給他早已公開的資訊', 'pol', 'politics', 8, '最小的代價，最大的懷疑', ['你交出了一份連公告欄都貼著的值勤表。灰鴉看了很久，笑了：「很穩。下次，我們再談下一份。」你知道這句「下次」，是一把尚未落下的刀。', { pol: 1 }], ['灰鴉看出了你的敷衍，把字條折好塞回你手裡：「再試一次。」你的手指在發抖。', { debt: 1, rep: -1 }]),
+    O('iron', '交出真實的行程，但事先設好反偵察', '把行程交出去，同時讓米切爾在暗處盯著', 'proPol', 'politics', 10, '雙重賭局，風險極高', ['你交出了真實的行程，同時在旁邊安排好了人手。灰鴉的人果然在那條街出現了，卻被一個「恰好路過」的巡邏隊圍了個正著。他沒有懷疑你，只是罵了一句：「運氣真差。」', { pol: 1, merit: 2, mitch: 1, tags: { moleCoup: true } }], ['行程被叛軍的人盯上，薇若妮卡在那條街上遇到了埋伏。她毫髮無傷，卻在事後盯著你看了很久：「那天，你為什麼沒有陪我去？」', { trust: -3, aff: -2 }], { mitch: true, need: needM }),
+    O('trick', '把真相告訴薇若妮卡，請她配合假情報', '賭她的判斷，賭你們的默契', 'polRep', 'social', 11, '最大的賭，贏了關係升溫，輸了信任歸零', [`你找了一個沒有人的夜晚，把一切說給了${V}聽。她聽完，沉默很久，然後把你的手腕握得很緊：「從現在起，你每一份情報，先經過我。」她的聲音很輕，輕得你不敢相信。`, { trust: 4, aff: 2, tags: { moleToldV: true } }], [`${V}聽完，臉色一寸一寸變白：「……你瞞了我多久？」她沒有叫人，也沒有再說話。三天後，你的值勤表上多了一個陌生的名字：監視者。`, { trust: -5, aff: -3, tags: { moleToldV: true } }], { vero: true, need: needV }),
+  ]
+};
+EV.x_mole2 = {
+  title: '她身邊的洞', vero: true, hint: '你拿到的情報，已經不只關係到你一個人。',
+  text: G => `秋天，灰鴉遞給你一個地址：「凡爾瑟公爵的家宴，下個月初三。你在那裡，對吧？」他說得像在談天氣，「只要在宴會結束前，讓一扇側門多開十分鐘。」你的血一下子涼了。${G.rel >= 3 ? `${V}已經邀請你出席那場家宴，她說：「我想讓我父親，正式見見你。」` : `${V}沒有邀請你，但你有辦法進去。`}`,
+  opts: G => [
+    O('conserv', '拒絕，並冒險切斷這條線', '「這一件，我不做。」', 'polRep', 'politics', 10, '代價是你自己的安全與家人的處境', ['灰鴉沒有動怒，只是安靜地看了你很久：「你知道你拒絕的是什麼嗎？」你說：「知道。」他把字條收回雨衣裡，一個字也沒有多說。你的家人，從那天起每個月的配給券被減了一半。', { fam: -1, rep: 1, tags: { moleRefused: true } }], ['你的拒絕被灰鴉當成了背叛的信號。三天後，你家的窗戶被人用煤灰畫上了三道槓。', { fam: -2, debt: 1 }]),
+    O('iron', '提前把安排告訴公爵府的警衛長', '匿名遞一份名單，讓他們自己防備', 'pol', 'politics', 9, '兩邊都不得罪，但很容易被發現', ['你把一份匿名名單塞進了公爵府警衛長的信箱。家宴當晚，側門的守衛多了三倍，什麼事也沒有發生。灰鴉在隔天的字條上只寫了四個字：「運氣真好。」', { rep: 1, pol: 1, merit: 1 }], ['警衛長把那份匿名名單當成了惡作劇。家宴當晚，側門真的多開了十分鐘——被你親手擋回去了，但你的行動被灰鴉的人看見了。', { debt: 1, fam: -1 }]),
+    O('trick', '假意配合，讓叛軍的人自己撞進去', '把側門的鑰匙，換成一把空鎖', 'proPol', 'recon', 10, '用叛軍的人，反過來設局', ['家宴當晚，三個叛軍的人從「多開了十分鐘」的側門摸進去，被早已等在那裡的警衛圍了個結實。灰鴉那邊失去了三個人，卻不知道是誰設的局。你站在宴會廳的另一頭，舉起酒杯，手穩得像別人的手。', { pol: 1, rep: 1, merit: 3, tags: { moleCoup: true } }], ['空鎖被叛軍的人一眼看穿，他們撤退了，但你的行動在灰鴉心裡留下了很深的疑問。', { debt: 1 }]),
+  ]
+};
+EV.x_mole3 = {
+  title: '最後一次接頭', hint: '你不可能同時對兩邊，說一輩子的謊。',
+  text: G => `春天，灰鴉第一次沒有用煤灰畫槓，而是直接出現在你的辦公室門口，手裡拿著一份你的調職令副本。「我們需要你，把邊境第二補給庫的位置，標在地圖上。」他把一張地圖攤開，「這是最後一件事。之後，我們就兩清了。」你看著那個補給庫的名字：那是供應邊境三萬人配給的中樞。${hasM(G) ? '米切爾的機槍組，就在庫旁邊。' : ''}`,
+  opts: G => [
+    O('conserv', '假地圖，真位置偏三公里', '把一張相差三公里的地圖交給他', 'pol', 'politics', 9, '最安全，但被看穿就是死局', ['你交出了一張偏了三公里的地圖。叛軍的突擊隊在那片荒地裡轉了一整夜，什麼也沒找到。灰鴉在三天後托人帶來一句話：「兩清。」你不確定，那是真的，還是他給你最後的體面。', { pol: 1, rep: 1 }], ['假地圖被一次偵察就識破。灰鴉站在你面前，沒有說話，只是拿出了一份你父母的住址。', { fam: -2, debt: 2 }]),
+    O('iron', '向軍部坦白，把灰鴉的聯絡網賣出去', '帶著證據，走進軍部情報局', 'polRep', 'politics', 12, '最重的賭，也是最乾淨的一條路', ['你走進軍部情報局，把兩年來灰鴉的每一次接頭紀錄放在桌上。情報局的人看了你很久：「你知道你交出的，是你自己的罪證嗎？」你說：「知道。」三天後，灰鴉的聯絡網被連根拔起，你被記一次警告，保住了軍職。', { rep: 1, merit: 5, tags: { moleTurned: true } }], ['情報局沒有給你機會。你被當場扣押，審查持續了整整兩個月。軍職保住了，信任卻回不來。', { rep: -2, trust: -2, tags: { moleTurned: true, scarred: true } }]),
+    O('trick', '請薇若妮卡與米切爾配合，反設一局', '把補給庫換成一個巨大的陷阱', 'proPol', 'recon', 11, '三方合作，需要你們彼此信任', [`${V}沉默了十秒鐘，拿起電話：「我來安排。」米切爾在電話那頭罵了一句髒話，隨即說：「我的機槍組，今晚換位置。」叛軍的突擊隊在補給庫的外圍遭遇了一支「不存在的守備旅」。灰鴉在逃跑的路上，回頭看了你一眼。`, { aff: 3, trust: 3, mitch: 3, merit: 4, tags: { moleCoup: true, moleTurned: true } }], ['陷阱設得太急，叛軍突擊隊逃走了大半。灰鴉的人一個也沒抓到，你卻在這場行動裡暴露了自己。', { trust: -2, rep: -1 }], { vero: true, need: G => (G.rel >= 3 && hasM(G) ? null : '需要薇若妮卡與米切爾都在') }),
+  ]
+};
+EV.x_mole_final = {
+  title: '雙面人生的盡頭', hint: '三條路，沒有一條可以回頭。',
+  pickTitle: '你要怎麼結束這場雙面人生？',
+  text: G => `夏天，灰鴉死了。不是死在戰場上，而是死在邊境的一間舊倉庫，身上帶著三個國家的假證件，右手攥著一枚煤灰做的小徽章。你在他的遺物裡發現了一封寫給你的信，只有一行字：「你的家人，我一直沒有動。」你在倉庫門口站了很久。${V}在軍部的車裡等你，手指敲著方向盤，一下一下，像在數你還有多少時間。`,
+  pick: G => [
+    { name: '向薇若妮卡與軍部坦白', line: '把一切攤開，接受她與軍法的審判', desc: '信任與好感足夠時，她會原諒你；否則，你們就此決裂。', confirm: true,
+      t: '你走進軍部，把所有紀錄放在桌上。軍法官讀了很久，轉頭看向坐在旁聽席的薇若妮卡。她站起來，走到你面前，盯著你的眼睛：',
+      fx: {},
+      after: G => {
+        G.tags.moleEnd = 'confess';
+        if (G.trust >= 50 && G.aff >= 40) {
+          G.tags.confessOk = true;
+          say(G, '「你瞞了我多久？」「七年。」「……我給你一次機會，下一次，再瞞，我親手把你送進軍法庭。」她把你的手腕握得很緊，緊得發疼。');
+          applyFx(G, { trust: 5, aff: 3, rep: -1, why: { trust: '她選擇相信你', aff: '她選擇原諒你', rep: '雙面身分曝光' } }, '坦白');
+          logLife(G, '向薇若妮卡與軍部坦白了雙面人生，被原諒。');
+        } else {
+          say(G, '她沒有說話，只是把那份紀錄一頁一頁看完，然後輕輕放下：「……你不該等到現在才告訴我。」她轉身離開，沒有回頭。');
+          applyFx(G, { trust: -8, aff: -6, rep: -2, merit: 0, why: { trust: '你瞞了她太久', aff: '你瞞了她太久', rep: '雙面身分曝光' } }, '坦白');
+          G.tags.confessOk = false; G.tags.breakup = true;
+          if (!G.married) G.rel = 2;
+          logLife(G, '向軍部坦白雙面人生，與薇若妮卡決裂。');
+        }
+      } },
+    { name: '繼續潛伏，成為雙方的影子', line: '兩邊都需要你，兩邊都不知道你究竟是誰', desc: '權謀+2，戰功+3。永遠在鋼索上，信任值會被慢慢蠶食。', confirm: true,
+      t: '你把灰鴉的遺物收進口袋，走出倉庫。從此，你是叛軍的眼睛，也是政府的耳朵，還是你自己的刀。你在車窗的倒影裡，看見了一個你不太認得的自己。',
+      fx: { pol: 2, merit: 3, trust: -3, why: { trust: '長年的隱瞞' } },
+      after: G => { G.tags.moleEnd = 'shadow'; logLife(G, '成為了兩邊都信任、也都不完全信任的影子。'); } },
+    { name: '斬斷兩邊，帶家人回邊境', line: '把軍職與身分放下，回到配給區', desc: '家庭和睦+2，聲望-1。你不再是任何一方的人，只是一個回家的人。', confirm: true,
+      t: '你走進軍部，把軍階章放在桌上，沒有解釋。回到配給區的那天，母親站在門口，手裡還拿著當年替你折領口的那條帶子：「回來了就好。」',
+      fx: { fam: 2, rep: -1, why: { fam: '回到家人身邊', rep: '放下軍職' } },
+      after: G => { G.tags.moleEnd = 'exit'; G.tags.homeward = true; logLife(G, '斬斷兩邊的聯繫，帶著家人回到邊境。'); } },
+  ]
+};
+/* ===== 劇本註冊、分支節拍與結局 ===== */
+const TRACK_BEATS = {
+  front: [{ id: 'x_front1', t: 30 }, { type: 'op', id: 'm_siege', t: 34 }, { id: 'x_front2', t: 37 }],
+  staff: [{ id: 'x_staff1', t: 30 }, { id: 'x_staff2', t: 34 }, { id: 'x_staff3', t: 37 }],
+  industry: [{ id: 'x_ind1', t: 30 }, { id: 'x_ind2', t: 34 }, { type: 'op', id: 'm_trial', t: 38 }]
+};
+(function wrapCommission() {
+  const orig = EV.e_commission.pick;
+  const tracks = ['front', 'staff', 'industry'];
+  EV.e_commission.pick = G => orig(G).map((o, i) => {
+    const a = o.after;
+    return Object.assign({}, o, { after: G => { a(G); insertBeats(G, TRACK_BEATS[tracks[i]]); } });
+  });
+})();
+
+const CORE = [
+  { id: 'e_enroll', t: 1 }, { id: 'e_council', t: 2 }, { id: 'e_farewell', t: 3 },
+  { id: 'e_family1', t: 4 }, { id: 'e_border', t: 5 }, { type: 'op', id: 'm_inter', t: 7 },
+  { id: 'e_famcrisis', t: 8 }, { type: 'op', id: 'm_final', t: 10 }, { id: 'e_grad', t: 11 },
+  { id: 'e_reunion', t: 12 }, { id: 'e_faction', t: 13 }, { type: 'op', id: 'm_patrol', t: 15 }, { id: 'e_love1', t: 16 },
+  { id: 'e_mod', t: 20 }, { type: 'op', id: 'm_contest', t: 23 }, { id: 'e_love2', t: 24 }, { id: 'e_commission', t: 27 },
+  { type: 'op', id: 'm_border1', t: 28 }, { id: 'e_council2', t: 32 }, { type: 'op', id: 'm_border2', t: 36 },
+  { id: 'e_cold', t: 38, cond: G => G.rel >= 3 && !G.married && (G.aff < 24 || G.trust < 36) },
+  { id: 'e_parted', t: 39, cond: G => G.tags.breakup },
+  { id: 'e_propose', t: 40, cond: G => !G.tags.breakup && G.rel >= 3 }, { id: 'e_ruzhui', t: 40, cond: G => G.married }, { id: 'e_lawfamily', t: 42, cond: G => G.married },
+  { id: 'e_child', age: 27, s: 3, jump: true, cond: G => G.married },
+  { id: 'e_mentor', age: 27, s: 3, jump: true, cond: G => !G.married },
+  { id: 'x_second', age: 31, s: 0, jump: true, cond: G => G.tags.breakup && !G.married },
+  { type: 'op', id: 'm_peak', age: 36, s: 3, jump: true }, { id: 'e_parliament', age: 38, s: 0 },
+  { id: 'e_childexam', age: 42, s: 0, jump: true, cond: G => G.children.length > 0 },
+  { id: 'e_mentor2', age: 42, s: 1, jump: true, cond: G => G.mentee && G.children.length === 0 },
+  { id: 'e_rebel', age: 46, s: 0, jump: true, cond: G => G.children.length > 0 },
+  { id: 'e_retire', age: 56, s: 0, jump: true }, { id: 'e_old', age: 66, s: 0, jump: true },
+  { type: 'end', ageFn: lifeSpanAge, s: 2, jump: true }
+];
+/* 由旗標觸發的支線（不符合條件時自動略過） */
+const EXTRAS = [
+  { id: 'x_suspect1', t: 6, cond: G => G.tags.suspect },
+  { id: 'x_forge3', t: 6, cond: G => G.tags.proto || G.tags.rebelTie || G.tags.forgeTrust },
+  { id: 'x_mole1', t: 6, cond: G => G.tags.mole },
+  { id: 'x_mole2', t: 16, cond: G => G.tags.mole },
+  { id: 'x_mole3', t: 26, cond: G => G.tags.mole },
+  { id: 'x_suspect2', t: 31, cond: G => G.tags.suspect && !G.tags.cleared },
+  { id: 'x_mole_final', t: 35, cond: G => G.tags.mole }
+];
+function tOfBeat(b) { return b.t != null ? b.t : ageToT(b.age != null ? b.age : 99, b.s || 0); }
+function mergeBeats(list, extras) {
+  const out = list.slice();
+  for (const x of extras) {
+    const tx = tOfBeat(x);
+    let i = 0;
+    while (i < out.length && !(out[i].type === 'end') && tOfBeat(out[i]) <= tx) i++;
+    out.splice(i, 0, x);
+  }
+  return out;
+}
+const buildBeats = opening => mergeBeats(opening.concat(CORE), EXTRAS);
+
+const SCRIPTS = {
+  s1: {
+    id: 's1', name: '第九發電站', sub: '標準劇本', diff: 1,
+    blurb: '防大附高的入學考核，在廢棄的第九發電站打一場多隊PVP。學長姐與軍用無人機是第三勢力，你可以組隊、也可以孤狼。',
+    feats: ['多隊PVP考核', '組隊／孤狼', '三方勢力', '完整人生弧線'],
+    beats: () => buildBeats([{ type: 'exam', t: 0 }])
+  },
+  s2: {
+    id: 's2', name: '邊境夜襲', sub: '嫌疑與信任', diff: 2,
+    blurb: '配給日的夜裡，叛軍與巡邏隊在你家門外交火。你救下了人，也成了調查官眼中唯一知道叛軍路線的人。免試特招、重新應考，或是展開那張沒有署名的紙條。',
+    feats: ['配給站保衛戰', '調查與嫌疑', '三條入學路線', '軍法複查'],
+    beats: () => buildBeats([{ id: 'x_raid1', t: 0 }, { type: 'op', id: 'm_raid', t: 1 }, { id: 'x_raid2', t: 1 }, { id: 'x_raid3', t: 2 }])
+  },
+  s3: {
+    id: 's3', name: '舊鍛造廠', sub: '原型與籌碼', diff: 2,
+    blurb: '廢鐵堆裡的一具軍工原型模組，軍工保安隊與叛軍同時在找。交出去、留下來，還是賣給叛軍？它會一路影響你的軍旅與技術路線。',
+    feats: ['原型模組', '三方籌碼', '軍工與叛軍線', '技術授權之爭'],
+    beats: () => buildBeats([{ id: 'x_forge1', t: 0 }, { type: 'op', id: 'm_forge', t: 1 }, { id: 'x_forge2', t: 1 }])
+  },
+  s4: {
+    id: 's4', name: '灰鴉', sub: '雙面人生', diff: 3,
+    blurb: '考核前夜，一個自稱父親舊識的人遞來一袋叛軍的配給券。你要在防大裡，同時對兩邊說謊：值勤表、家宴、補給庫，每一份情報都可能改寫你與薇若妮卡的一生。',
+    feats: ['臥底雙面線', '多重坦白抉擇', '四條收束路線', '情感大起大落'],
+    beats: () => buildBeats([{ id: 'x_mole0', t: 0 }, { type: 'exam', t: 0 }])
+  }
+};
+const SCRIPT_ORDER = ['s1', 's2', 's3', 's4'];
+
+/* ---------- 結局 ---------- */
+const ENDINGS = {
+  shadow: { n: '影子元帥', d: '你成為兩邊都信任、也都不完全信任的人，一生走在鋼索上。' },
+  confess_ok: { n: '被原諒的叛徒', d: '你把一切攤開，她罵了你整整一夜，然後握緊了你的手。' },
+  confess_fail: { n: '孤身的坦白者', d: '你說出了真相，卻失去了最想守住的那個人。' },
+  exit: { n: '歸鄉的雙面人', d: '你放下了軍階，也放下了謊言，回到配給區的小屋。' },
+  scarred: { n: '背著四個字的老兵', d: '「保留觀察」四個字，跟了你一輩子。' },
+  front_duke: { n: '公爵家的利劍', d: '你在邊境前線立下戰功，背後是凡爾瑟的家徽。' },
+  front_free: { n: '邊境守護者', d: '你以獨立之名守了一輩子的邊境，軍中沒有人說你靠妻家。' },
+  front_alone: { n: '孤高的將軍', d: '你是前線最老的兵，也是最孤獨的人。' },
+  staff_duke: { n: '凡爾瑟的影子議員', d: '議會裡，沒有人分得清你是軍人還是公爵家的人。' },
+  staff_free: { n: '議會的獨立之聲', d: '你在兩大派系之間，替邊境與平民說了一輩子的話。' },
+  staff_alone: { n: '孤身的參謀長', d: '一張辦公桌，三十年的作戰計畫，和一盞總是最晚熄的燈。' },
+  ind_duke: { n: '軍工世家之父', d: '你的名字刻在訂製模組的胸甲上，與凡爾瑟的家徽並排。' },
+  ind_open: { n: '開放技術之父', d: '邊境的每一座工坊，都用著你當年公開的規格。' },
+  ind_free: { n: '獨立的總工程師', d: '你不屬於任何家族，也不依附任何派系，只對自己的圖紙負責。' },
+  ind_alone: { n: '孤獨的工匠', d: '你的手藝傳了下去，你的名字沒有。' }
+};
+function endingOf(G) {
+  const t = G.tags;
+  let id;
+  if (t.moleEnd === 'shadow') id = 'shadow';
+  else if (t.moleEnd === 'confess') id = t.confessOk ? 'confess_ok' : 'confess_fail';
+  else if (t.moleEnd === 'exit') id = 'exit';
+  else if (t.scarred) id = 'scarred';
+  else {
+    const tr = G.track === 'staff' ? 'staff' : G.track === 'industry' ? 'ind' : 'front';
+    if (tr === 'ind' && t.openTech) id = 'ind_open';
+    else id = tr + '_' + (G.ruzhui ? 'duke' : G.married ? 'free' : 'alone');
+  }
+  return Object.assign({ id }, ENDINGS[id]);
+}
+function epilogueLines(G) {
+  const t = G.tags, L = [];
+  if (t.suspect && t.cleared) L.push('配給站那一夜的嫌疑，終於在軍法庭上被洗清。');
+  if (t.scarred) L.push('「保留觀察」四個字，一直留在你的檔案袋裡。');
+  if (t.protoProven) L.push('原型模組量產之後，邊境的民用架終於有了像樣的關節。');
+  if (t.openTech) L.push('你當年公開的規格，如今每一座邊境工坊都在使用。');
+  if (t.frontHero) L.push('黑風口的那面旗，被人鑲進了玻璃框，掛在哨所的牆上。');
+  if (t.rebelTie) L.push('鍋爐房門上的三道煤灰槓，你一直沒有擦掉。');
+  if (t.moleCoup) L.push('有人說，叛軍的一支突擊隊，是被你親手送進了陷阱。');
+  if (G.mentee) L.push(G.mentee.pass ? `${G.mentee.name}通過了入學考核，後來接過了你的槍。` : `${G.mentee.name}沒有通過那次考核，但沒有放棄，後來成了邊境最好的教官。`);
+  if (t.reconciled) L.push(`那場爭吵之後，你和${V}再也沒有讓同一件事，吵第二次。`);
+  if (t.secondChance) L.push('多年後的那顆糖，你們一起吃完了。');
+  return L;
+}
+/* ===== 對外介面 ===== */
+function startGame(seed, script) {
+  const sid = SCRIPTS[script] ? script : 's1';
+  const G = newGame(seed);
+  G.script = sid; G.beats = SCRIPTS[sid].beats();
+  goNext(G); return G;
+}
+function validFree(G, sel) {
+  const n = G.node; if (!n || !n.free) return false;
+  for (const g of n.free.groups) {
+    const v = sel[g.id]; if (v == null) continue;
+    const ch = g.choices.find(c => c.id === v);
+    if (!ch || ch.disabled) return false;
+    if (ch.custom && !(Array.isArray(sel.custom))) return false;
+  }
+  return true;
+}
+function choose(G, c) {
+  const n = G.node;
+  if (!n || n.kind === 'end') return false;
+  try {
+    if (n.kind === 'team') {
+      if (!/^t:/.test(c)) return false;
+      G.node = null; teamPick(G, c.slice(2));
+    } else if (n.kind === 'plans') {
+      let o;
+      if (c[0] === 'f') {
+        const sel = JSON.parse(c.slice(2));
+        if (!validFree(G, sel)) return false;
+        o = n.free.build(G, sel);
+        if (o.need) { const r = o.need(G); if (r) return false; }
+      } else {
+        const opt = n.opts[+c.slice(2)];
+        if (!opt || opt.disabled) return false;
+        o = opt.o;
+      }
+      G.node = null; runOption(G, o, n);
+    } else if (n.kind === 'tragic') {
+      G.node = null; tragicChoose(G, c === 'y');
+    } else if (n.kind === 'pick') {
+      const idx = +c.slice(2); const o = n.opts[idx];
+      if (!o || o.disabled) return false;
+      G.node = null; pickChoose(G, idx, n);
+    } else return false;
+  } catch (e) { e.message = '[choose ' + c + '] ' + e.message; throw e; }
+  G.choices.push(c);
+  return true;
+}
+function replay(seed, script, choices) {
+  const G = startGame(seed, script);
+  for (const c of choices) { if (!choose(G, c)) break; }
+  return G;
+}
+const BL = { startGame, choose, replay, previewFree, evalOpt, newGame, when, age, totalStat, overall, rankName, displayName, tInfo, equipMod, teamMod, slotsUsed, loadoutName, presetOf, resLabel,
+  SCRIPTS, SCRIPT_ORDER, ENDINGS, MODS, MOD_ORDER, PRESETS, SLOT_CAP, TIER_N, ATTR_N, CAT_N, RANKS, ZONES, sgn, COMBAT, hashSeed };
+root.BL = BL; if (typeof module !== 'undefined') module.exports = BL;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sg=n=>(n>0?'+':n<0?'−':'±')+Math.abs(n);
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+let pref=Object.assign({fs:'m',lay:'pc',th:'auto'},store.get('bl_pref')||{});
+let G=null,shown=0,seed='',sid='s1',selScript=(store.get('bl_pref')||{}).script||'s1',draft=null,dockMin=false;
+
+/* ---------- 偏好 ---------- */
+function applyPref(){
+  document.body.dataset.fs=pref.fs; document.body.dataset.layout=pref.lay;
+  const r=document.documentElement; if(pref.th==='auto')r.removeAttribute('data-theme'); else r.setAttribute('data-theme',pref.th);
+  for(const [id,k] of [['segFs','fs'],['segLay','lay'],['segTh','th']])
+    document.querySelectorAll('#'+id+' button').forEach(b=>b.classList.toggle('on',b.dataset.v===pref[k]));
+  store.set('bl_pref',pref);
+}
+for(const [id,k] of [['segFs','fs'],['segLay','lay'],['segTh','th']])
+  $('#'+id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;pref[k]=b.dataset.v;applyPref();});
+
+/* ---------- 內部種子（不對玩家顯示）與劇本 ---------- */
+const ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function newSeed(){let s='';const a=new Uint32Array(6);try{crypto.getRandomValues(a)}catch(e){for(let i=0;i<6;i++)a[i]=Math.random()*4e9}for(let i=0;i<6;i++)s+=ALPHA[a[i]%ALPHA.length];return s;}
+const stars=n=>'★'.repeat(n)+'☆'.repeat(3-n);
+function renderScripts(){
+  $('#scripts').innerHTML=BL.SCRIPT_ORDER.map(id=>{const c=BL.SCRIPTS[id];
+    return `<button class="scr ${id===selScript?'on':''}" data-sc="${id}"><div class="sh1"><b>${esc(c.name)}</b><span class="sub">${esc(c.sub)}</span><span class="st">難度 ${stars(c.diff)}</span></div><p>${esc(c.blurb)}</p><div class="chips">${c.feats.map(f=>`<span class="chip">${esc(f)}</span>`).join('')}</div></button>`}).join('');
+  const n=Object.keys(store.get('bl_end')||{}).length,tot=Object.keys(BL.ENDINGS).length;
+  $('#endCount').textContent=`已解鎖結局 ${n}／${tot}`;
+}
+$('#scripts').addEventListener('click',e=>{const b=e.target.closest('[data-sc]');if(!b)return;selScript=b.dataset.sc;pref.script=selScript;store.set('bl_pref',pref);renderScripts();});
+function unlockEnding(id){const o=store.get('bl_end')||{};if(!o[id]){o[id]=1;store.set('bl_end',o);}}
+function endingsHTML(){
+  const o=store.get('bl_end')||{};
+  return `<h2>結局圖鑑<button class="btn sm" data-x="close">關閉</button></h2><p class="hint">共 ${Object.keys(BL.ENDINGS).length} 種結局，分別由路線、婚姻與重大抉擇決定。</p><div class="ed">${Object.entries(BL.ENDINGS).map(([k,v])=>o[k]?`<div><b>${esc(v.n)}</b><br><span class="mute">${esc(v.d)}</span></div>`:`<div class="lock"><b>？？？</b><br>尚未解鎖</div>`).join('')}</div>`;
+}
+$('#bEnd').onclick=()=>openDrawer(endingsHTML());
+function copy(t,btn){const ok=()=>{if(btn){const o=btn.textContent;btn.textContent='已複製';setTimeout(()=>btn.textContent=o,1200)}};
+  try{navigator.clipboard.writeText(t).then(ok,()=>toast('請手動複製：'+t))}catch(e){toast('請手動複製：'+t)}}
+function toast(m){const d=document.createElement('div');d.className='toast';d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),2600);}
+
+/* ---------- 開始 / 繼續 ---------- */
+function refreshCont(){
+  const sv=store.get('bl_save'),b=$('#cont');
+  if(sv&&sv.seed&&BL.SCRIPTS[sv.script||'s1']){b.hidden=false;b.textContent=`繼續上次的人生：《${BL.SCRIPTS[sv.script||'s1'].name}》，已做 ${sv.choices.length} 個選擇`;b.onclick=()=>begin(sv.script||'s1',sv.seed,sv.choices);}
+  else b.hidden=true;
+  renderScripts();
+}
+$('#go').onclick=()=>begin(selScript,newSeed(),[]);
+function saveNow(){store.set('bl_save',{script:sid,seed,choices:G.choices.slice()});}
+function begin(script,s,choices){
+  sid=script;seed=s;
+  try{G=BL.replay(s,script,choices);}catch(e){console.error(e);toast('存檔無法還原，將重新開始');G=BL.startGame(s,script);}
+  $('#start').hidden=true;$('#game').hidden=false;$('#feed').innerHTML='';shown=0;draft=null;dockMin=false;
+  $('#tScript').textContent=BL.SCRIPTS[script].name;saveNow();
+  sync(true);window.scrollTo(0,0);
+}
+function backToStart(){$('#game').hidden=true;$('#start').hidden=false;refreshCont();window.scrollTo(0,0);}
+
+/* ---------- 區塊渲染 ---------- */
+const KEYN={great:'大成功',success:'成功',fail:'失敗',bigfail:'重大失敗'};
+function judgeHTML(f){
+  const e=f.ev,gap=e.gap;
+  const eqp=(e.equip.parts||[]).filter(p=>p[1]).map(p=>`<li>${esc(p[0])} ${sg(p[1])}</li>`).join('');
+  const sit=(e.situ||[]).map(p=>`<li>${esc(p[0])} ${sg(p[1])}</li>`).join('');
+  const pr=(e.prepWhy||[]).map(p=>`<li>${esc(p[0])} ${sg(p[1])}</li>`).join('');
+  return `<div class="judge k-${e.key}"><div class="jh"><span>判定｜${esc(f.name)}</span><span class="jl">${esc(f.label)}</span></div>
+  <div class="jf">${esc(e.attrName)} <b>${e.attrVal}</b> ${sg(e.equip.v)}裝備 ${sg(e.situV)}情境 ${sg(e.prep)}準備 ${sg(e.ease||0)}底氣 = 有效 <b>${e.eff}</b> ／ 難度 <b>${e.diff}</b> ／ 差距 <b>${sg(gap)}</b></div>
+  <details><summary>明細</summary><div>${esc(e.why)}</div><ul>${eqp||'<li>裝備：無加成</li>'}${sit||''}${pr}<li>劇本底氣 ${sg(e.ease||0)}（主角受劇本保護）</li></ul></details></div>`;
+}
+function battleHTML(d){
+  const team=d.team.map(m=>`<span class="${m.a?'':'dead'}">${esc(m.n)}</span>`).join('、');
+  const en=d.enemies.map(x=>`<div class="${x.a?'':'dead'}">${esc(x.n)}　${x.s}人　戰力${x.d}${x.a?'':'（已淘汰）'}</div>`).join('');
+  return `<div class="board"><div><h5>我方</h5>${team}</div><div><h5>敵隊</h5>${en||'—'}</div>
+  <div><h5>戰場</h5>落點：${esc(d.zone||'—')}<br>佔塔：${esc(({free:'無人佔領',mine:'我方佔領',contested:'爭奪中'})[d.tower]||d.tower)}　守塔 ${d.holdMin} 分鐘</div>
+  <div><h5>變數</h5>噪音：${d.noiseKnown?d.noise:'？'}　無人機：${d.droneKnown?d.drones+' 架（'+esc(d.droneZone||'')+'）':'？'}<br>學長姐：${esc(d.seniors)}</div>
+  <div><h5>評分</h5>淘汰 ${d.score.elims}　戰術 ${d.score.tactics}　印象 ${d.score.impression}</div></div>`;
+}
+const RESN={hold:'守滿十分鐘・全員錄取',merit:'破格錄取',reserve:'備取入學'};
+function blockHTML(f){
+  switch(f.k){
+    case 'ch': return `<div class="ch"><small>CH.${f.no} · ${esc(f.when)}</small><h2>${esc(f.title)}</h2></div>`;
+    case 'p': return `<p class="p">${esc(f.text)}</p>`;
+    case 'pick': return `<div class="pickecho"><b>▸ ${esc(f.name)}</b>${f.line?'　<span class="mute">'+esc(f.line)+'</span>':''}</div>`;
+    case 'judge': return judgeHTML(f);
+    case 'delta': return `<div class="deltas">${f.items.map(i=>i.text?`<span class="dchip tx">${esc(i.text)}</span>`:`<span class="dchip ${i.d>0?'up':i.d<0?'dn':''}">${esc(i.label)} ${sg(i.d)}${i.reason?'<i>'+esc(i.reason)+'</i>':''}</span>`).join('')}</div>`;
+    case 'summary': return `<div class="box"><h4>${esc(f.title)}</h4><ul>${f.lines.map(l=>`<li>${esc(l)}</li>`).join('')}</ul></div>`;
+    case 'world': return `<div class="box"><h4>${esc(f.title)}</h4><ul>${f.lines.map(l=>`<li>${esc(l)}</li>`).join('')}</ul></div>`;
+    case 'battle': return battleHTML(f.data);
+    case 'score': return `<div class="box"><h4>考核評分</h4><table class="sc">${f.rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${r[1]}</td></tr>`).join('')}<tr><td><b>總分（門檻 ${f.thr}）</b></td><td><b>${f.total}</b></td></tr></table><p style="margin:.5em 0 0"><b>${esc(RESN[f.res]||f.res)}</b></p></div>`;
+    case 'report': return reportHTML(f);
+  }
+  return '';
+}
+function reportHTML(f){
+  const st=f.stats,names=BL.ATTR_N;
+  const bars=['pro','body','pol','fam','rep'].map(k=>`<div class="bar"><span>${esc(names[k])}</span><i><u style="width:${Math.min(100,st[k]*8)}%"></u></i><b>${st[k]}</b></div>`).join('');
+  return `<div class="report"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><small class="mono mute">LIFE REPORT · ${esc(f.script||'')}</small><div class="grade">${f.grade.rank}</div><b>${esc(f.grade.name)}</b></div>
+  <div style="text-align:right"><b>${esc(f.name)}</b><br>享年 ${f.age}　${esc(f.rank)}<br>戰功 ${f.merit}　評分 ${f.grade.pts}</div></div>
+  ${f.ending?`<div class="sec">結局</div><p style="margin:0"><b style="font-size:1.15em;color:var(--accent)">${esc(f.ending.n)}</b><br><span class="mute">${esc(f.ending.d)}</span></p>`:''}
+  ${f.epilogue&&f.epilogue.length?`<ul style="margin:.6em 0 0;padding-left:1.1em">${f.epilogue.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}
+  <div class="sec">五維</div><div class="bars">${bars}</div>
+  <div class="sec">關係</div><p style="margin:0">薇若妮卡：好感 ${f.aff}／信任 ${f.trust}${f.married?'｜已成婚'+(f.ruzhui?'（入贅）':''):'｜未成婚'}　米切爾羈絆 ${f.mitch}</p>
+  ${f.children.length?`<div class="sec">子女</div><ul style="margin:0;padding-left:1.1em">${f.children.map(c=>`<li>${esc(c)}</li>`).join('')}</ul>`:''}
+  <div class="sec">傷病</div><p style="margin:0">${f.injuries.length?esc(f.injuries.join('、')):'無'}</p>
+  <div class="sec">人生年表</div><ul style="margin:0;padding-left:1.1em">${f.life.map(l=>`<li>${l.age}歲（${l.year}）${esc(l.text)}</li>`).join('')||'<li>—</li>'}</ul>
+  <div class="row" style="margin-top:14px"><button class="btn pri" data-act="copyshare">複製分享文字</button><button class="btn" data-act="again">換個劇本再活一次</button></div></div>`;
+}
+
+/* ---------- 同步畫面 ---------- */
+function sync(first){
+  const feed=$('#feed');let firstNew=null;
+  const html=[];
+  for(let i=shown;i<G.feed.length;i++){const fb=G.feed[i];if(fb.k==='report'&&fb.ending)unlockEnding(fb.ending.id);html.push(blockHTML(fb));}
+  if(html.length){
+    const tmp=document.createElement('div');tmp.innerHTML=html.join('');
+    firstNew=tmp.firstElementChild;
+    while(tmp.firstChild)feed.appendChild(tmp.firstChild);
+  }
+  shown=G.feed.length;
+  renderTop();renderDock();
+  if(!first&&firstNew){const y=firstNew.getBoundingClientRect().top+window.scrollY-($('#top').offsetHeight+10);window.scrollTo({top:y,behavior:'smooth'});}
+  else if(first){requestAnimationFrame(()=>window.scrollTo(0,document.body.scrollHeight));}
+  document.body.style.paddingBottom=($('#dock').offsetHeight+10)+'px';
+}
+function renderTop(){
+  const inf=BL.tInfo(G.t);
+  $('#tAge').textContent=BL.age(G)+'歲';$('#tYear').textContent=inf.year+'·'+inf.season;
+  $('#tOv').textContent=BL.overall(G);$('#tMerit').textContent=G.merit;
+  const seasons=['秋','冬','春','夏'],cur=G.t%4;
+  $('#pips').innerHTML=seasons.map((s,i)=>`<div class="pip ${i<cur?'on':''} ${i===cur?'cur':''}"></div>`).join('')+`<span>${esc(BL.rankName(G))}${G.married?'｜已婚':''}</span>`;
+}
+
+/* ---------- 決策面板 ---------- */
+function actChoose(c){
+  try{
+    const ok=BL.choose(G,c);
+    if(!ok){toast('這個選擇目前無法成立');return;}
+  }catch(e){console.error(e);toast('發生錯誤：'+e.message);return;}
+  saveNow();
+  draft=null;dockMin=false;sync(false);
+}
+function pvHTML(ev){return `<div class="pv"><span>難度 ${ev.diff}</span><span>有效值 ${ev.eff}</span><span class="r-${ev.key}">預估：${esc(BL.resLabel(ev))}</span></div>`;}
+function renderDock(){
+  const n=G.node,d=$('#dBody'),t=$('#dTitle');
+  $('#dock').classList.toggle('min',dockMin);$('#dToggle').textContent=dockMin?'展開 ▴':'收合 ▾';
+  if(!n){t.textContent='';d.innerHTML='';return;}
+  if(n.kind==='end'){t.textContent='人生終章';d.innerHTML='<p class="hint">這段人生已經寫完。你可以回到結算報告，或換個種子再活一次。</p><div class="row"><button class="btn pri" data-act="again">換個劇本再活一次</button><button class="btn" data-act="copyshare">複製分享文字</button></div>';return;}
+  t.textContent=n.title||'決策';
+  let h=n.hint?`<p class="hint">${esc(n.hint)}</p>`:'';
+  if(n.kind==='team')h+=teamHTML(n);
+  else if(n.kind==='plans')h+=plansHTML(n);
+  else if(n.kind==='tragic')h+=`<p>代價：<b>${esc(n.cost)}</b></p><div class="opts"><button class="opt" data-c="y"><div class="on">承擔代價，轉為悲壯成功</div><div class="ol">${esc(n.cost)}</div></button><button class="opt" data-c="n"><div class="on">接受失敗</div><div class="ol">不付代價，承受失敗後果</div></button></div>`;
+  else if(n.kind==='pick')h+=pickHTML(n);
+  d.innerHTML=h;
+}
+function teamHTML(n){
+  draft=draft||{inv:[]};
+  const cards=n.cands.map(x=>{const c=x.c,ev=x.ev,on=draft.inv.includes(c.id);
+    return `<label class="opt cand"><input type="checkbox" data-inv="${c.id}" ${on?'checked':''}><div><div class="on">${esc(c.name)}　<span class="tag">${c.origin==='noble'?'貴族':c.origin==='border'?'邊境':'平民'}</span><span class="tag">${esc(c.role)}</span><span class="tag">${esc(c.trait)}</span></div>
+    <div class="ol">能力評級 ${c.rating}｜長處：${esc(c.str)}｜短處：${esc(c.weak)}</div>${pvHTML(ev).replace('預估：','答應機率判定：')}</div></label>`;}).join('');
+  return `<div class="opts">${cards}</div><div class="row stick"><button class="btn pri" id="invGo" ${draft.inv.length?'':'disabled'}>邀請所選（${draft.inv.length}/3）</button><button class="btn" data-c="t:solo">孤狼出戰</button></div>`;
+}
+function plansHTML(n){
+  const opts=n.opts.map(o=>`<button class="opt" data-c="p:${o.id}" ${o.disabled?'disabled':''}><div class="on"><span class="tag">${({conserv:'穩健',iron:'強攻',trick:'巧計'})[o.kind]||'方案'}</span>${esc(o.name)}</div><div class="ol">${esc(o.line)}</div>${o.disabled?`<div class="ol">⛔ ${esc(o.disabled)}</div>`:pvHTML(o.prev)}</button>`).join('');
+  let free='';
+  if(n.free){
+    if(!draft||!draft.sel){draft={sel:{},open:false};for(const g of n.free.groups){const f=g.choices.find(c=>!c.disabled);if(f)draft.sel[g.id]=f.id;}draft.custom=n.free.custom?(BL.PRESETS.B.mods.slice()):null;}
+    free=`<button class="opt" id="freeTog" style="margin-top:8px;border-style:dashed"><div class="on">✎ 自由組合</div><div class="ol">自己拼出行動路線、借力與裝備，下方即時預估</div></button>`;
+    if(draft.open){
+      free+=`<div class="free">${freeBody(n)}</div>`;
+    }
+  }
+  return `<div class="opts">${opts}</div>${free}`;
+}
+function freeBody(n){
+  const f=n.free,sel=draft.sel;let h='';
+  for(const g of f.groups){
+    h+=`<h4>${esc(g.label)}</h4><div class="chips">${g.choices.map(c=>`<button data-g="${g.id}" data-v="${c.id}" class="${sel[g.id]===c.id?'on':''}" ${c.disabled?'disabled':''} title="${esc(c.desc||'')}">${esc(c.label)}</button>`).join('')}</div>`;
+    const cur=g.choices.find(c=>c.id===sel[g.id]);
+    if(cur)h+=`<div class="ol mute" style="font-size:.82em;margin-top:3px">${esc(cur.disabled?'⛔ '+cur.disabled:cur.desc||'')}</div>`;
+  }
+  let invalid='';
+  if(f.custom&&sel.loadout==='custom'){
+    const cap=f.custom.cap,used=BL.slotsUsed(draft.custom);
+    h+=`<h4>自訂模組（槽位 ${used}/${cap}）</h4><div class="chips">${f.custom.mods.map(m=>{const M=BL.MODS[m];return `<button data-m="${m}" class="${draft.custom.includes(m)?'on':''}" ${M.req?'disabled':''}>${esc(M.n)}（${M.s}）</button>`}).join('')}</div>`;
+    if(used>cap)invalid=`槽位超出上限 ${used}/${cap}`;
+    if(!draft.custom.includes('rifle'))invalid='必須配備步槍';
+  }
+  let pv='';
+  if(invalid)pv=`<p style="color:var(--bad)">⚠ ${invalid}</p>`;
+  else{try{const s=freeSel();const r=BL.previewFree(G,s);pv=`<div style="margin-top:8px"><b>${esc(r.o.name||'自由組合')}</b>${pvHTML(r.ev)}</div>`;}catch(e){pv=`<p class="mute">（此組合尚無法預估）</p>`;}}
+  return h+pv+`<div class="row stick"><button class="btn pri" id="freeGo" ${invalid?'disabled':''}>執行這個組合</button></div>`;
+}
+function freeSel(){const s=Object.assign({},draft.sel);if(s.loadout==='custom')s.custom=draft.custom.slice();return s;}
+function pickHTML(n){
+  draft=draft&&draft.pk!==undefined?draft:{pk:null};
+  return `<div class="opts">${n.opts.map((o,i)=>{
+    const armed=draft.pk===i;
+    return `<button class="opt" data-pk="${i}" ${o.disabled?'disabled':''} style="${armed?'border-color:var(--accent)':''}"><div class="on">${esc(o.name)}</div><div class="ol">${esc(o.line||'')}</div>${o.desc?`<div class="ol" style="margin-top:.2em">${esc(o.desc)}</div>`:''}${o.disabled?`<div class="ol">⛔ ${esc(o.disabled)}</div>`:''}${armed?'<div class="on" style="color:var(--accent);margin-top:.3em">再點一次確認這個選擇</div>':''}</button>`}).join('')}</div>`;
+}
+$('#dBody').addEventListener('click',e=>{
+  const n=G&&G.node;if(!n)return;
+  let t=e.target.closest('[data-act]');if(t){act(t.dataset.act);return;}
+  t=e.target.closest('[data-c]');if(t){actChoose(t.dataset.c);return;}
+  if(e.target.closest('#invGo')){actChoose('t:'+draft.inv.join(','));return;}
+  if(e.target.closest('#freeTog')){draft.open=!draft.open;renderDock();return;}
+  if(e.target.closest('#freeGo')){actChoose('f:'+JSON.stringify(freeSel()));return;}
+  t=e.target.closest('[data-g]');if(t&&!t.disabled){draft.sel[t.dataset.g]=t.dataset.v;renderDock();return;}
+  t=e.target.closest('[data-m]');if(t&&!t.disabled){const m=t.dataset.m,a=draft.custom,i=a.indexOf(m);if(i>=0)a.splice(i,1);else a.push(m);renderDock();return;}
+  t=e.target.closest('[data-pk]');if(t&&!t.disabled){const i=+t.dataset.pk,o=n.opts[i];
+    if(o.confirm&&draft.pk!==i){draft.pk=i;renderDock();return;}
+    actChoose('k:'+i);return;}
+});
+$('#dBody').addEventListener('change',e=>{
+  const c=e.target.closest('[data-inv]');if(!c)return;const id=+c.dataset.inv,a=draft.inv,i=a.indexOf(id);
+  if(c.checked){if(a.length>=3){c.checked=false;toast('最多邀請 3 人');return;}a.push(id);}else if(i>=0)a.splice(i,1);
+  renderDock();
+});
+$('#dToggle').onclick=()=>{dockMin=!dockMin;renderDock();document.body.style.paddingBottom=($('#dock').offsetHeight+10)+'px';};
+$('#feed').addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(t)act(t.dataset.act);});
+
+function shareText(){
+  const f=G.feed.find(x=>x.k==='report');
+  if(!f)return '邊境人生模擬器';
+  return `邊境人生模擬器《${f.script}》\n${f.name} 享年${f.age}・${f.rank}\n結局：${f.ending?f.ending.n:'—'}｜評價 ${f.grade.rank}「${f.grade.name}」（${f.grade.pts}分）\n戰功${f.merit}${f.married?'｜已成婚':''}｜子女${f.children.length}人\n四個劇本、十五種結局，你能解鎖幾個？`;
+}
+function act(a){
+  if(a==='copyshare')copy(shareText());
+  if(a==='again'){store.del('bl_save');backToStart();}
+}
+
+/* ---------- 抽屜 ---------- */
+function openDrawer(html){$('#dSh').innerHTML=html;$('#drawer').classList.add('open');}
+$('#dBk').onclick=()=>$('#drawer').classList.remove('open');
+$('#dSh').addEventListener('click',e=>{const t=e.target.closest('[data-x]');if(!t)return;
+  const x=t.dataset.x;if(x==='close')$('#drawer').classList.remove('open');
+  if(x==='restart'){store.del('bl_save');$('#drawer').classList.remove('open');begin(sid,newSeed(),[]);}
+  if(x==='ends'){$('#dSh').innerHTML=endingsHTML();}
+  if(x==='home'){$('#drawer').classList.remove('open');backToStart();}
+});
+const bar=(l,v,max)=>`<div class="bar"><span>${esc(l)}</span><i><u style="width:${Math.max(0,Math.min(100,v/max*100))}%"></u></i><b>${v}</b></div>`;
+$('#bDetail').onclick=()=>{
+  const s=G.stats,N=BL.ATTR_N,fam=G.family||{};
+  const REL=['尚未結識','初識','分隔兩地','重逢','','已成婚'];
+  let h=`<h2>詳情<button class="btn sm" data-x="close">關閉</button></h2>
+  <div class="sec">五維</div><div class="bars">${['pro','body','pol','fam','rep'].map(k=>bar(N[k],s[k],12)).join('')}</div>
+  <div class="sec">關係</div><div class="bars">${bar('好感',G.aff,100)}${bar('信任',G.trust,100)}${bar('米切爾',G.mitch.bond,100)}</div>
+  <p class="mute" style="margin:.4em 0 0">薇若妮卡：${REL[G.rel]||'—'}${G.ruzhui?'｜入贅':''}${G.debt?'｜人情債×'+G.debt:''}｜米切爾：${({ok:'健在',injured:'負傷',retired:'退役',dead:'已殉職'})[G.mitch.status]||esc(G.mitch.status)}</p>
+  <div class="sec">家人</div><p style="margin:0">父親 ${esc(fam.father&&fam.father.name)}${fam.father&&fam.father.alive===false?'（已逝）':''}　母親 ${esc(fam.mother&&fam.mother.name)}${fam.mother&&fam.mother.alive===false?'（已逝）':''}<br>妹妹 ${esc(fam.sister&&fam.sister.name)}（${esc(fam.sister&&fam.sister.trait)}）${G.children.length?'<br>子女：'+G.children.map(c=>esc(c.given)).join('、'):''}${G.mentee?'<br>徒弟：'+esc(G.mentee.name)+'（'+esc(G.mentee.trait)+'）':''}</p>
+  <div class="sec">傷病檔案</div>${G.injuries.length?'<ul style="margin:0;padding-left:1.1em">'+G.injuries.map(i=>`<li><b>${esc(i.name)}</b>（${i.age}歲）<span class="mute"> ${esc(i.desc)}</span></li>`).join('')+'</ul>':'<p class="mute" style="margin:0">無</p>'}
+  <div class="sec">裝備</div><p style="margin:0 0 .4em">${esc(BL.TIER_N[G.tier])}｜${esc(BL.loadoutName(G.loadout))}｜槽位 ${BL.slotsUsed(G.loadout)}/${BL.SLOT_CAP[G.tier]}</p>
+  <div class="mods">${G.loadout.map(m=>`<span class="chip">${esc(BL.MODS[m].n)}</span>`).join('')}</div>
+  <p class="mute" style="margin:.4em 0 0">彈藥餘量：榴彈 ${G.ammo.gren}　破片 ${G.ammo.frag}　煙幕 ${G.ammo.smoke}</p>
+  ${G.allies&&G.allies.length?`<div class="sec">戰友</div><p style="margin:0">${G.allies.map(a=>esc(a.name||(a.c&&a.c.name)||a)).join('、')}</p>`:''}
+  <div class="sec">人生紀錄</div>${G.life.length?'<ul style="margin:0;padding-left:1.1em">'+G.life.map(l=>`<li>${l.age}歲　${esc(l.text)}</li>`).join('')+'</ul>':'<p class="mute" style="margin:0">尚無</p>'}`;
+  openDrawer(h);
+};
+$('#bTrait').onclick=()=>{
+  const TN={dukeBound:'與公爵家有牽連',free:'保留獨立姓名',mitchReady:'米切爾可並肩作戰',recommended:'獲得推薦',reserve:'備取入學',
+    suspect:'被列為嫌疑對象',cleared:'嫌疑已洗清',scarred:'被「保留觀察」',proto:'私藏原型模組',protoKnown:'知道原型模組的下落',protoProven:'原型模組實戰驗證',protoPilot:'原型機試驗者',
+    rebelTie:'與叛軍線人有牽連',forgeTrust:'獲軍工合作處信任',hunted:'被追查者盯上',squad:'帶出了一個新兵班',frontHero:'黑風口守衛者',openTech:'技術公開者',vilhartBound:'被視為維爾哈特的人',
+    enemyStaff:'得罪參謀部要員',reconciled:'與薇若妮卡和好',breakup:'與薇若妮卡分開',homeward:'心繫邊境',lastLetter:'寄出過那封信',secondChance:'與她重逢',
+    warHero:'配給站英雄',rescuedKid:'救下過少年',insubordination:'違令救援記錄',mole:'灰鴉的線人',moleCoup:'策反成功',moleTurned:'向軍部交出過線',moleRefused:'拒絕過叛軍',moleToldV:'向她坦白過',lone:'孤身奮戰'};
+  const tags=Object.keys(G.tags||{}).filter(k=>G.tags[k]&&TN[k]);
+  let h=`<h2>特質<button class="btn sm" data-x="close">關閉</button></h2>
+  <div class="sec">天生</div><p style="margin:0"><b>寧願自己扛</b><br><span class="mute">遇到難處習慣獨自承擔，不輕易向人開口。這讓你耐壓，也讓親近的人最容易為你擔心。</span></p>
+  <div class="sec">當前狀態</div><div class="mods">${tags.length?tags.map(k=>`<span class="chip">${esc(TN[k]||k)}</span>`).join(''):'<span class="mute">無</span>'}</div>
+  ${G.carry.length?`<div class="sec">延續中的修正</div><ul style="margin:0;padding-left:1.1em">${G.carry.map(c=>`<li>${esc(c.why)}（${sg(c.v)}，剩 ${c.left} 次）</li>`).join('')}</ul>`:''}
+  ${G.syn?`<div class="sec">隊伍默契</div><p style="margin:0">${sg(G.syn)}</p>`:''}
+  ${G.children.length?`<div class="sec">子女特質</div><ul style="margin:0;padding-left:1.1em">${G.children.map(c=>`<li><b>${esc(c.given)}</b>：承父「${esc(c.ft)}」、承母「${esc(c.mt)}」，怪癖：${esc(c.ut)}</li>`).join('')}</ul>`:''}`;
+  openDrawer(h);
+};
+$('#bMenu').onclick=()=>openDrawer(`<h2>選單<button class="btn sm" data-x="close">關閉</button></h2>
+  <p>目前劇本：<b style="color:var(--accent)">《${esc(BL.SCRIPTS[sid].name)}》</b></p>
+  <div class="row"><button class="btn" data-x="home">回到開始畫面</button><button class="btn" data-x="restart">重新開始這個劇本</button><button class="btn" data-x="ends">結局圖鑑</button></div>
+  <p class="hint" style="margin-top:14px">進度會自動儲存在這個瀏覽器。每次開始人生，家人、同梯考生與對手都會重新生成，同一劇本也會走出不同的人生。</p>`);
+
+/* ---------- 初始化 ---------- */
+applyPref();refreshCont();
+})();
+</script>
+
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))</script>
+</body></html>
